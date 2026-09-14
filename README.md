@@ -16,7 +16,7 @@ Un jardín 3D para sembrar flores, escribir una carta y compartir un regalo sin 
 - Tarde de sol o noche con luciérnagas. Ocasión personalizable.
 - Carta de hasta 360 caracteres y tres pequeñas razones de hasta 60 caracteres, descubribles desde las flores y los botones de la carta.
 - Compartir nativo cuando está disponible, copiar enlace y respaldo manual.
-- Postal ilustrada PNG de 1200 px de ancho y altura adaptable: carta, razones, dibujos, fotos con sus frases y enlace para escuchar la voz. La ilustración respeta cantidad, papel y cinta; no es una captura de la escena 3D.
+- Postal PNG de 1200 px de ancho y altura adaptable, con el estilo de la carta: fondo marfil, texto a la izquierda, firma manuscrita y dibujos en notas con cinta. Incluye razones, fotos completas con sus frases y el enlace para escuchar la voz. No es una captura de la escena 3D.
 - Releer, plegar la carta, editar y repetir la sorpresa. El destinatario puede crear un regalo nuevo.
 - Jardín y borrador guardados en este dispositivo; máximo 100 flores sembradas.
 - Controles de música y cámara disponibles también para quien recibe. Movimiento reducido, foco de modales y carta desplazable en pantallas pequeñas.
@@ -52,7 +52,7 @@ DATABASE_URL=postgresql://... PORT=3000 ORIGEN=http://localhost:3000 node server
 | `js/postcard.js`                                  | Descarga de la postal ilustrada                                            |
 | `js/audio.js`                                     | Música opcional con errores y tiempos máximos de espera                    |
 | `shared/gift.js`                                  | Validación compartida entre navegador y API                                |
-| `shared/bouquet.js`                               | Ilustración determinista del ramo para editor, postal y vista previa       |
+| `shared/bouquet.js`                               | Ilustración determinista del ramo para editor y vista previa       |
 | `server/index.js`, `server/db.js`, `server/og.js` | API, PostgreSQL y OpenGraph                                                |
 
 ## Datos y compatibilidad
@@ -77,7 +77,7 @@ El ajuste de movimiento reducido evita vuelos de cámara, caída de pétalos y e
 node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs
 node server/seguro.test.mjs
 # Usar exclusivamente una base de pruebas:
-DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --test tests/database.test.mjs tests/api.test.mjs
+DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --test tests/database.test.mjs tests/api.test.mjs tests/metrics.test.mjs
 ```
 
 Se comprueban compatibilidad, Unicode, validación, enlace de respaldo ante error/timeout, privacidad y rasterización de OpenGraph, persistencia en PostgreSQL y escapes HTML/JSON. La prueba de base elimina únicamente las filas con IDs aleatorios que ella misma crea.
@@ -109,3 +109,9 @@ La carta muestra palabras, dibujos, fotos, audio y respuestas sin otra pantalla 
 La sesión anónima que crea el regalo queda asociada a él: el servidor rechaza que esa sesión responda. El destinatario firma con un apodo de hasta 28 caracteres, recordado en su navegador; la firma y la respuesta se guardan con el regalo y son visibles a quienes tienen el enlace. Es una separación de sesiones, no una verificación de identidad entre dispositivos. La sesión y el token local de gestión permiten reconocer al autor al volver; perder ambos impide recuperar esa identificación sin un sistema de cuentas.
 
 El asistente muestra una espera animada y tres tarjetas con entrada escalonada. Elegir una añade un mensaje a la conversación y abre un texto editable antes de aplicarlo. Las consultas posteriores reciben esa selección editada; cancelar o fallar conserva el borrador de la opción. Se respeta movimiento reducido. La eliminación usa una confirmación dentro de la carta.
+
+## Métricas propias
+
+El backend registra actividad y volumen en PostgreSQL: visitas, pasos del creador, regalos, aperturas, respuestas, postales, asistente, subidas, peticiones, errores y tiempos. No utiliza un servicio externo ni incorpora textos, nombres o archivos en las métricas.
+
+Para abrir el panel local, añade `METRICS_PORT=5184` al comando de arranque y entra en `http://127.0.0.1:5184`. El panel escucha únicamente en loopback y está desactivado por defecto; la recogida sigue funcionando sin él. Incluye periodos y descarga JSON. Consulta [la guía de métricas](docs/METRICAS.md) para definiciones, límites y consulta por CLI.

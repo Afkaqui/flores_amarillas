@@ -1,3 +1,4 @@
+import { track, startVisitMetrics } from "./metrics.js";
 import * as THREE from "three";
 import anime from "animejs";
 import { GardenFallback } from "./garden-fallback.js";
@@ -27,6 +28,7 @@ import {
 import { normalizeGift, DEFAULT_MESSAGE, OCCASIONS } from "../shared/gift.js";
 import { bouquetSVG, guardarPostal } from "./postcard.js";
 anime.suspendWhenDocumentHidden = false;
+startVisitMetrics();
 
 const STORE = "flores-jardin-v2",
   DRAFT = "flores-carta-v2";
@@ -387,15 +389,23 @@ async function enterGarden() {
   saveGarden();
 }
 $("#btn-enter").addEventListener("click", async () => {
+  track("creator_started");
   await ocultar($("#intro"));
   creator.go(0, false);
   abrirModal($("#gift-modal"));
 });
 $("#btn-seed").addEventListener("click", () => plant(5));
 $("#btn-gift").addEventListener("click", () => {
-  if (!busy) abrirModal($("#gift-modal"));
+  if (!busy) {
+    track("creator_started");
+    abrirModal($("#gift-modal"));
+  }
 });
-$("#gift-close").addEventListener("click", () => cerrarModal($("#gift-modal")));
+$("#gift-close").addEventListener("click", () => {
+  if ($("#gift-form").classList.contains("assistant-mode"))
+    $("#assistant-close").click();
+  else cerrarModal($("#gift-modal"));
+});
 
 $("#btn-how").addEventListener("click", () => abrirModal($("#help-modal")));
 $("#help-close").addEventListener("click", () => cerrarModal($("#help-modal")));
@@ -553,8 +563,10 @@ async function downloadPostcard() {
   });
   try {
     await guardarPostal(current);
+    track("postcard_saved");
     toast("Tu recuerdo está listo, con sus fotos y dedicatorias. ♡");
   } catch (error) {
+    track("postcard_error");
     toast(
       error.message || "No pudimos crear la postal. Inténtalo otra vez.",
       6000,
@@ -576,9 +588,10 @@ async function copyLink() {
     );
     return;
   }
-  if (await copiar(link))
+  if (await copiar(link)) {
+    track("gift_shared");
     toast("Enlace copiado. Ya puedes hacerle llegar su jardín. 💛");
-  else {
+  } else {
     $("#gift-link").value = link;
     abrirModal($("#link-modal"));
     $("#gift-link").focus();
@@ -597,6 +610,7 @@ $("#btn-share").addEventListener("click", async () => {
         text: "Hay un pequeño jardín esperando por ti. 💛",
         url: link,
       });
+      track("gift_shared");
       return;
     } catch (error) {
       if (error.name === "AbortError") return;
@@ -610,6 +624,7 @@ $("#btn-open").addEventListener("click", async () => {
   $("#btn-open").disabled = true;
   toggleMusic($("#reveal-music").checked);
   if (!opened) {
+    track("gift_opened", { giftId: received.id });
     registrarApertura(received.id);
     opened = true;
   }

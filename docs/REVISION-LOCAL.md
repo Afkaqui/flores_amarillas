@@ -37,3 +37,12 @@ No se ha desplegado esta revisión al VPS. Siguen pendientes las comprobaciones 
 - El ancho del modal se calcula sobre su espacio disponible, descontando los márgenes. La zona central es la única que se desplaza; el encabezado y las acciones permanecen accesibles. Cambiar de paso vuelve al inicio de esa zona.
 - BrowserOS: los tres pasos no presentan desbordamiento horizontal con contenedores de 320, 390, 768 y 1024 px. Con dibujo y asistente abiertos, comprobados límites y pie accesible en 390 × 844, 320 × 568 y 768 × 500. Cierres medidos en 44 × 44; campos y select en 48 px. Estas medidas de contenedor no sustituyen una prueba en teléfono físico.
 - Se restauró el tamaño normal tras la revisión; no se añadieron pantallas ni vistas superpuestas al producto.
+
+## Postal, inspiración y métricas
+
+- La postal adopta la composición de la carta: marfil, texto alineado a la izquierda, Fraunces, firma Caveat y notas dibujadas con cinta. Las fotos mantienen su proporción. Se inspeccionó un PNG real; el caso máximo con seis dibujos y tres fotos generó 1200 × 8018 px sin texto fuera del lienzo. La descarga no inserta una copia de la carta en la pantalla.
+- «Un poquito de inspiración» abre una vista dedicada dentro del creador. Oculta pasos, vista previa y acciones de continuación mientras se conversa. Volver y el cierre recuperan el paso anterior y sus nombres; aplicar conduce a la carta editable cuando ya hay destinatario.
+- Métricas agregadas en PostgreSQL, panel exclusivo de loopback y exportación JSON. Contadores de actividad, volumen, errores, latencia y tokens, con sus límites explicados en `METRICAS.md`.
+- La suite con base aislada suma 19 pruebas correctas. La revisión de BrowserOS comprobó que el modo asistente no deja visibles los otros pasos ni el botón Continuar; también se inspeccionó el panel local.
+
+Esta revisión sigue siendo local; no se desplegó al VPS. Se mantienen las limitaciones de dispositivo físico, escucha y regresión general indicadas anteriormente.

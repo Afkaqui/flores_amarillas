@@ -3,19 +3,29 @@ import { drawingSVG } from "../shared/drawing.js";
 import { bouquetSVG } from "../shared/bouquet.js";
 export { bouquetSVG };
 function wrap(ctx, text, width) {
-  const result = [];
+  const lines = [];
   for (const paragraph of text.split("\n")) {
     let line = "";
-    for (const char of Array.from(paragraph)) {
-      if (ctx.measureText(line + char).width > width && line) {
-        result.push(line.trim());
-        line = "";
+    for (const word of paragraph.split(/\s+/).filter(Boolean)) {
+      const candidate = line ? line + " " + word : word;
+      if (ctx.measureText(candidate).width <= width) {
+        line = candidate;
+        continue;
       }
-      line += char;
+      if (line) lines.push(line);
+      line = "";
+      // Keep normal words together, but safely wrap a long unbroken dedication.
+      for (const char of Array.from(word)) {
+        if (line && ctx.measureText(line + char).width > width) {
+          lines.push(line);
+          line = "";
+        }
+        line += char;
+      }
     }
-    result.push(line.trim());
+    lines.push(line);
   }
-  return result;
+  return lines;
 }
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -49,152 +59,305 @@ async function loadSVG(svg) {
     URL.revokeObjectURL(url);
   }
 }
+async function loadLetterFonts() {
+  let timer;
+  try {
+    await Promise.race([
+      Promise.all([
+        document.fonts.load("400 34px Fraunces"),
+        document.fonts.load("italic 400 27px Fraunces"),
+        document.fonts.load("400 32px Caveat"),
+        document.fonts.load("400 14px Outfit"),
+      ]),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new Error(
+                "Las letras de tu carta aún están cargando. Intenta guardar de nuevo.",
+              ),
+            ),
+          10000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Lay out the whole letter before painting so no attachment is clipped. */
 export async function renderPostal(value) {
   const d = normalizeGift(value);
-  await Promise.race([
-    document.fonts.ready,
-    new Promise((r) => setTimeout(r, 1500)),
-  ]);
-  const [photos, drawings, bouquet] = await Promise.all([
+  const [photos, drawings] = await Promise.all([
     Promise.all(d.fotos.map(loadImage)),
-    Promise.all(d.dibujos.map((d) => loadSVG(drawingSVG(d)))),
-    loadSVG(bouquetSVG(d)),
+    Promise.all(d.dibujos.map((drawing) => loadSVG(drawingSVG(drawing)))),
+    loadLetterFonts(),
   ]);
   const canvas = document.createElement("canvas");
-  canvas.width = 1200;
-  const extraHeight =
-    photos.length * 850 +
-    Math.ceil(drawings.length / 3) * 420 +
-    (d.recuerdos.length ? 100 + d.recuerdos.length * 85 : 0) +
-    (d.voz ? 140 : 0);
   const ctx = canvas.getContext("2d");
-  let size = 39,
-    lines;
-  do {
-    ctx.font = `italic ${size}px Fraunces, Georgia, serif`;
-    lines = wrap(ctx, d.mensaje, 920);
-    if (lines.length * size * 1.5 <= 530) break;
-    size--;
-  } while (size > 23);
-  const baseHeight = extraHeight
-    ? Math.max(1120, 1000 + lines.length * size * 1.5)
-    : 1600;
-  canvas.height = Math.ceil(baseHeight + extraHeight);
-  const gradient = ctx.createLinearGradient(0, 0, 1200, canvas.height);
-  gradient.addColorStop(0, "#fffcf3");
-  gradient.addColorStop(1, d.papel === "rosa" ? "#f1ded4" : "#f4e6ca");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 1200, canvas.height);
-  ctx.strokeStyle = "#c9ac754d";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(40, 40, 1120, canvas.height - 80);
-  ctx.textAlign = "center";
-  ctx.drawImage(bouquet, 330, 70, 540, 486);
-  ctx.fillStyle = "#987647";
-  ctx.font = "20px Outfit, sans-serif";
-  ctx.fillText(OCCASIONS[d.ocasion].toUpperCase(), 600, 570);
-  ctx.fillStyle = "#61472d";
-  ctx.font = "52px Fraunces, Georgia, serif";
-  ctx.fillText("Para " + d.para + ",", 600, 655, 970);
-  ctx.font = `italic ${size}px Fraunces, Georgia, serif`;
-  ctx.fillStyle = "#765a3c";
-  lines.forEach((line, i) => ctx.fillText(line, 600, 750 + i * size * 1.5));
-  ctx.font = "24px Outfit, sans-serif";
-  ctx.fillStyle = "#9f8560";
-  ctx.fillText("Con todo mi cariño,", 600, baseHeight - 230);
-  ctx.font = "52px Caveat, cursive";
-  ctx.fillStyle = "#966a51";
-  ctx.fillText(d.de || "alguien que te quiere", 600, baseHeight - 165, 970);
-  let y = baseHeight - 70;
-  if (d.recuerdos.length) {
-    ctx.font = "22px Outfit, sans-serif";
-    ctx.fillStyle = "#748267";
-    ctx.fillText("PEQUEÑAS RAZONES PARA QUERERTE", 600, y);
-    y += 65;
-    ctx.font = "30px Fraunces, Georgia, serif";
-    ctx.fillStyle = "#617253";
-    for (const memory of d.recuerdos) {
-      wrap(ctx, memory, 920).forEach((line, i) =>
-        ctx.fillText(line, 600, y + i * 38),
-      );
-      y += 85;
-    }
-    y += 35;
-  }
-  for (let i = 0; i < drawings.length; i += 3) {
-    const row = drawings.slice(i, i + 3),
-      start = (1200 - row.length * 340) / 2;
-    row.forEach((image, j) => {
-      const x = start + j * 340;
-      ctx.fillStyle = "#fffefa";
-      ctx.fillRect(x + 10, y, 320, 385);
-      ctx.drawImage(image, x + 40, y + 15, 260, 260);
-      ctx.fillStyle = "#718063";
-      let noteSize = 24,
-        noteLines;
-      do {
-        ctx.font = `${noteSize}px Fraunces, Georgia, serif`;
-        noteLines = wrap(ctx, d.dibujos[i + j].note, 285);
-        if (noteLines.length <= 4) break;
-        noteSize--;
-      } while (noteSize > 11);
-      noteLines.forEach((line, k) =>
-        ctx.fillText(line, x + 170, y + 292 + k * 24),
-      );
+  const width = 600,
+    inset = 52,
+    content = width - inset * 2;
+  const paint = [];
+  let y = 54;
+  const paragraph = (
+    text,
+    { font, color, line = 24, x = inset, maxWidth = content, align = "left" },
+  ) => {
+    ctx.font = font;
+    const lines = wrap(ctx, text, maxWidth);
+    const top = y;
+    paint.push(() => {
+      ctx.font = font;
+      ctx.fillStyle = color;
+      ctx.textAlign = align;
+      ctx.textBaseline = "top";
+      lines.forEach((text, i) => ctx.fillText(text, x, top + i * line));
     });
-    y += 420;
+    y += lines.length * line;
+  };
+  function paper(x, top, w, h, fill, radii = 12) {
+    ctx.save();
+    ctx.shadowColor = "#80604812";
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 5;
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.roundRect(x, top, w, h, radii);
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "#e9ddd1";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+  function tape(center, top) {
+    ctx.save();
+    ctx.translate(center, top);
+    ctx.rotate((-5 * Math.PI) / 180);
+    ctx.fillStyle = "#e1dcc2a3";
+    ctx.fillRect(-25, -7, 50, 14);
+    ctx.restore();
+  }
+  // The same small occasion mark as the top of the opened letter.
+  paint.push(() => {
+    ctx.save();
+    ctx.translate(inset + 12, 61);
+    ctx.fillStyle = "#b98b3d";
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI * 2) / 5;
+      ctx.beginPath();
+      ctx.ellipse(
+        Math.cos(angle) * 7,
+        Math.sin(angle) * 7,
+        4.6,
+        4.6,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+  paragraph(OCCASIONS[d.ocasion].toUpperCase(), {
+    font: "11px Outfit",
+    color: "#a18960",
+    line: 17,
+    x: inset + 38,
+    maxWidth: content - 38,
+  });
+  y += 38;
+  paragraph("Para " + d.para + ",", {
+    font: "400 34px Fraunces",
+    color: d.ambiente === "noche" ? "#504950" : "#34513f",
+    line: 43,
+  });
+  y += 30;
+  paragraph(d.mensaje, {
+    font: "italic 400 27px Fraunces",
+    color: "#705439",
+    line: 44,
+  });
+  y += 38;
+  paragraph("Con todo mi cariño,", {
+    font: "13px Outfit",
+    color: "#a18a69",
+    line: 20,
+  });
+  y += 6;
+  paragraph(d.de || "alguien que te quiere", {
+    font: "32px Caveat",
+    color: "#8b6650",
+    line: 39,
+  });
+  y += 38;
+  if (d.recuerdos.length) {
+    paragraph("CADA FLOR GUARDA ALGO BONITO", {
+      font: "11px Outfit",
+      color: "#889477",
+      line: 18,
+    });
+    y += 18;
+    d.recuerdos.forEach((memory) => {
+      paragraph(memory, { font: "20px Fraunces", color: "#65775a", line: 29 });
+      y += 16;
+    });
+    y += 12;
+  }
+  // Two notes per row, matching the letter gallery, with natural caption heights.
+  for (let i = 0; i < drawings.length; i += 2) {
+    const row = drawings.slice(i, i + 2);
+    const noteWidth = 206,
+      gap = 26;
+    const start = (width - row.length * noteWidth - (row.length - 1) * gap) / 2;
+    ctx.font = "24px Caveat";
+    const notes = row.map((_, j) =>
+      d.dibujos[i + j].note
+        ? wrap(ctx, d.dibujos[i + j].note, noteWidth - 28)
+        : [],
+    );
+    const heights = notes.map(
+      (lines) => 190 + (lines.length ? 10 + lines.length * 28 : 0),
+    );
+    const top = y + 10;
+    paint.push(() =>
+      row.forEach((image, j) => {
+        const x = start + j * (noteWidth + gap),
+          h = heights[j];
+        ctx.save();
+        ctx.translate(x + noteWidth / 2, top + h / 2);
+        ctx.rotate(((j % 2 ? 2 : -2) * Math.PI) / 180);
+        ctx.translate(-noteWidth / 2, -h / 2);
+        paper(0, 0, noteWidth, h, j % 2 ? "#fcf6f2" : "#fffcf7", [3, 3, 20, 3]);
+        ctx.drawImage(image, 23, 12, 160, 160);
+        ctx.font = "24px Caveat";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#738066";
+        notes[j].forEach((line, k) =>
+          ctx.fillText(line, noteWidth / 2, 182 + k * 28),
+        );
+        tape(noteWidth / 2, 0);
+        ctx.restore();
+      }),
+    );
+    y += Math.max(...heights) + 48;
+  }
+  if (photos.length) {
+    y += 4;
+    paragraph("PEDACITOS DE LO NUESTRO", {
+      font: "12px Outfit",
+      color: "#889477",
+      line: 18,
+    });
+    y += 28;
   }
   photos.forEach((image, i) => {
-    const w = image.naturalWidth,
-      h = image.naturalHeight,
-      scale = Math.min(960 / w, 600 / h);
-    ctx.fillStyle = "#fffefa";
-    ctx.fillRect(100, y, 1000, 805);
-    ctx.strokeStyle = "#e2d9c9";
-    ctx.strokeRect(100, y, 1000, 805);
-    ctx.drawImage(
-      image,
-      600 - (w * scale) / 2,
-      y + 25 + (600 - h * scale) / 2,
-      w * scale,
-      h * scale,
+    const scale = Math.min(
+      (content - 32) / image.naturalWidth,
+      440 / image.naturalHeight,
     );
-    ctx.fillStyle = "#6c7c5d";
-    ctx.font = "31px Fraunces, Georgia, serif";
+    const imageW = image.naturalWidth * scale,
+      imageH = image.naturalHeight * scale;
     const caption =
-      d.momentos.find((item) => item.foto === d.fotos[i])?.texto ||
+      d.momentos.find((m) => m.foto === d.fotos[i])?.texto ||
       "Un momento que quería guardar contigo.";
-    wrap(ctx, caption, 910)
-      .slice(0, 4)
-      .forEach((line, k) => ctx.fillText(line, 600, y + 673 + k * 38));
-    y += 850;
+    ctx.font = "18px Fraunces";
+    const lines = wrap(ctx, caption, content - 70);
+    const h = 16 + imageH + 24 + lines.length * 27 + 22,
+      top = y;
+    paint.push(() => {
+      paper(inset, top, content, h, "#fffefa", 16);
+      ctx.drawImage(image, (width - imageW) / 2, top + 16, imageW, imageH);
+      tape(width / 2, top);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.font = "11px Outfit";
+      ctx.fillStyle = "#a0a58d";
+      ctx.fillText(
+        String(i + 1).padStart(2, "0"),
+        inset + 18,
+        top + imageH + 43,
+      );
+      ctx.font = "18px Fraunces";
+      ctx.fillStyle = "#65775a";
+      lines.forEach((line, k) =>
+        ctx.fillText(line, inset + 46, top + imageH + 40 + k * 27),
+      );
+    });
+    y += h + 36;
   });
   if (d.voz) {
-    ctx.font = "24px Outfit, sans-serif";
-    ctx.fillStyle = "#977280";
-    ctx.fillText("Esta carta también tiene una nota de voz.", 600, y + 25);
-    ctx.fillText("Puedes escucharla en el enlace del regalo.", 600, y + 65);
     const id =
       value?.id ||
-      (typeof window !== "undefined" && window.__createdGift?.id) ||
-      location.pathname.match(/^\/r\/([a-z0-9]{7})$/)?.[1];
-    if (id && /^[a-z0-9]{7}$/.test(id)) {
-      ctx.font = "20px Outfit, sans-serif";
-      ctx.fillText(location.origin + "/r/" + id, 600, y + 102, 980);
-    }
+      location.pathname.match(/^\/r\/([a-z0-9]{7})$/)?.[1] ||
+      window.__createdGift?.id;
+    const url =
+      id && /^[a-z0-9]{7}$/.test(id) ? location.origin + "/r/" + id : "";
+    const top = y;
+    paint.push(() => paper(inset, top, content, url ? 118 : 96, "#fcf1ed", 16));
+    y += 18;
+    paragraph("Un poquito de mi voz ♡", {
+      font: "22px Caveat",
+      color: "#977280",
+      line: 28,
+      x: inset + 20,
+      maxWidth: content - 40,
+    });
+    paragraph("Escúchala al abrir el enlace de este regalo.", {
+      font: "13px Outfit",
+      color: "#87746b",
+      line: 22,
+      x: inset + 20,
+      maxWidth: content - 40,
+    });
+    if (url)
+      paragraph(url, {
+        font: "11px Outfit",
+        color: "#87746b",
+        line: 18,
+        x: inset + 20,
+        maxWidth: content - 40,
+      });
+    y = Math.max(y + 20, top + (url ? 118 : 96)) + 32;
   }
-  ctx.font = "17px Outfit, sans-serif";
-  ctx.fillStyle = "#9a967f";
-  ctx.fillText(
-    "flores amarillas · un pequeño jardín para ti",
-    600,
-    canvas.height - 70,
-  );
+  y += 12;
+  const footerY = y;
+  paint.push(() => {
+    ctx.strokeStyle = "#dce0d3";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(inset, footerY);
+    ctx.lineTo(width - inset, footerY);
+    ctx.stroke();
+  });
+  y += 24;
+  paragraph("flores amarillas · pequeños gestos, mucho amor", {
+    font: "11px Outfit",
+    color: "#a19c86",
+    line: 18,
+    align: "center",
+    x: width / 2,
+  });
+  y += 40;
+  canvas.width = width * 2;
+  canvas.height = Math.ceil(y * 2);
+  ctx.scale(2, 2);
+  ctx.fillStyle = "#fffaf0";
+  ctx.fillRect(0, 0, width, y);
+  ctx.strokeStyle = "#b9a07530";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(12, 12, width - 24, y - 24, 6);
+  ctx.stroke();
+  for (const draw of paint) draw();
   return canvas;
 }
 export async function guardarPostal(value) {
   const d = normalizeGift(value);
-  const canvas = await renderPostal(d);
+  const canvas = await renderPostal(value);
   const blob = await new Promise((resolve) =>
     canvas.toBlob(resolve, "image/png"),
   );

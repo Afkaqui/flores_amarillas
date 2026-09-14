@@ -1,3 +1,11 @@
+import {
+  httpMetrics,
+  registerMetricEvents,
+  prepareMetrics,
+  startMetrics,
+  stopMetrics,
+} from "./metrics.js";
+import { startMetricsDashboard } from "./metrics-admin.js";
 import express from "express";
 import { normalizeGift, OCCASIONS } from "../shared/gift.js";
 import path from "node:path";
@@ -33,7 +41,9 @@ app.disable("x-powered-by");
 // Sólo nginx_proxy nos alcanza (el puerto se publica en la pasarela de Docker),
 // así que su X-Forwarded-For sí es de fiar.
 app.set("trust proxy", 1);
+app.use(httpMetrics);
 registerFeatures(app);
+registerMetricEvents(app);
 app.use(express.json({ limit: "256kb" }));
 
 /* ============================================================
@@ -68,12 +78,10 @@ app.post("/api/regalos", async (req, res) => {
   const ip = ipDe(req);
   try {
     if (gift.permitirRespuesta && !(await sessionHash(req)))
-      return res
-        .status(401)
-        .json({
-          error:
-            "Abre el creador de nuevo para guardar un regalo con respuestas.",
-        });
+      return res.status(401).json({
+        error:
+          "Abre el creador de nuevo para guardar un regalo con respuestas.",
+      });
     await claimMedia(req, gift);
     if ((await regalosRecientes(ip)) >= TOPE_POR_HORA) {
       return res
@@ -262,12 +270,29 @@ app.use((req, res) => {
 try {
   await prepararEsquema();
   await prepareFeatures();
+  await prepareMetrics();
+  startMetrics();
   console.log("[flores] esquema listo");
 } catch (err) {
   console.error("[flores] no se pudo preparar la base:", err.message);
   process.exit(1);
 }
 
-app.listen(PUERTO, "0.0.0.0", () => {
+const dashboard = startMetricsDashboard();
+const server = app.listen(PUERTO, "0.0.0.0", () => {
   console.log(`[flores] escuchando en :${PUERTO} — origen ${ORIGEN}`);
 });
+
+let shuttingDown = false;
+for (const signal of ["SIGTERM", "SIGINT"])
+  process.on(signal, async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    const deadline = setTimeout(() => process.exit(1), 10000);
+    deadline.unref();
+    dashboard?.close();
+    server.close(async () => {
+      await stopMetrics();
+      process.exit(0);
+    });
+  });

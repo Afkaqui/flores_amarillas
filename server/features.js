@@ -203,9 +203,9 @@ export function registerFeatures(app) {
         return res.status(429).json({
           error: "Tu cómplice está terminando otra idea. Espera un momento.",
         });
-      if (
-        !(process.env.OPENCODE_GO_API_KEY || process.env.AGENT_CONNECT_SECRET)
-      )
+      if (!(
+        process.env.OPENCODE_GO_API_KEY || process.env.AGENT_CONNECT_SECRET
+      ))
         return res.status(503).json({
           error:
             "Tu cómplice aún no está conectado. Puedes preparar tu regalo manualmente.",
@@ -252,6 +252,7 @@ export function registerFeatures(app) {
           "UPDATE flower_ai_usage SET tokens=tokens+$1 WHERE day=CURRENT_DATE AND actor=$2",
           [result.usage, "global"],
         );
+        res.locals.metricTokens = result.usage;
         res.set("Cache-Control", "no-store").json({
           patch: result.patch,
           options: result.options,
@@ -375,6 +376,8 @@ export function registerFeatures(app) {
           await unlink(path.join(MEDIA_ROOT, name));
           throw e;
         }
+        res.locals.metricInput = buffer.length;
+        res.locals.metricOutput = output.length;
         res.status(201).json({ url: "/media/" + name });
       } catch {
         res.status(400).json({
@@ -445,20 +448,16 @@ export function registerFeatures(app) {
     async (req, res) => {
       try {
         if (await isGiftAuthor(req, req.params.id))
-          return res
-            .status(403)
-            .json({
-              error:
-                "Este regalo lo creaste tú. Comparte el enlace para recibir su respuesta.",
-            });
+          return res.status(403).json({
+            error:
+              "Este regalo lo creaste tú. Comparte el enlace para recibir su respuesta.",
+          });
         const name =
           typeof req.body.name === "string" ? req.body.name.trim() : "";
         if (!name || Array.from(name).length > 28)
-          return res
-            .status(400)
-            .json({
-              error: "Escribe tu nombre o apodo, de hasta 28 caracteres.",
-            });
+          return res.status(400).json({
+            error: "Escribe tu nombre o apodo, de hasta 28 caracteres.",
+          });
         const flower = normalizeDrawing(req.body.flower);
         const gift = await leerRegalo(req.params.id);
         if (!gift?.permitirRespuesta)

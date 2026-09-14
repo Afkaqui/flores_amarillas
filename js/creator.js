@@ -1,3 +1,4 @@
+import { track } from "./metrics.js";
 import {
   INKS,
   MAX_DRAWINGS,
@@ -47,6 +48,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#f-to").focus();
     }
     step = Math.max(0, Math.min(2, n));
+    if (step > 0) track(step === 1 ? "step_bouquet" : "step_letter");
     $("#gift-form").classList.toggle("letter-mode", step === 2);
     document
       .querySelectorAll("[data-panel]")
@@ -72,7 +74,11 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     .querySelectorAll("[data-step]")
     .forEach((b) => (b.onclick = () => go(Number(b.dataset.step))));
   $("#step-next").onclick = () => go(step + 1);
-  $("#gift-cancel").onclick = () => (step ? go(step - 1) : onExit());
+  $("#gift-cancel").onclick = () => {
+    if ($("#gift-form").classList.contains("assistant-mode")) closeAssistant();
+    else if (step) go(step - 1);
+    else onExit();
+  };
   $("#gift-form").addEventListener("input", () => revision++);
   $("#gift-form").addEventListener("change", () => revision++);
   $("#gift-form").addEventListener("keydown", (e) => {
@@ -458,19 +464,31 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#media-status").textContent = e.message;
     }
   };
-  function openAssistant() {
+  let assistantReturnFocus = null;
+  function openAssistant(event) {
+    track("assistant_opened");
+    assistantReturnFocus = event?.currentTarget || document.activeElement;
     show("#assistant-panel", true);
     $("#gift-form").classList.add("assistant-mode");
-    $("#assistant-panel").scrollIntoView({ block: "nearest" });
-    $("#assistant-input").focus();
+    $("#gift-close").setAttribute("aria-label", "Volver al creador");
+    $("#gift-cancel").textContent =
+      step === 0 ? "Volver a los nombres" : "Volver a mi carta";
+    $(".creator-layout").scrollTop = 0;
+    $("#assistant-input").focus({ preventScroll: true });
   }
-  $("#assistant-open").onclick = openAssistant;
-  $("#assistant-letter").onclick = openAssistant;
-  $("#assistant-close").onclick = () => {
+  function closeAssistant(focus = true) {
     request?.abort();
     show("#assistant-panel", false);
     $("#gift-form").classList.remove("assistant-mode");
-  };
+    $("#gift-close").setAttribute("aria-label", "Cerrar creador");
+    go(step, false);
+    if (focus && assistantReturnFocus?.isConnected)
+      assistantReturnFocus.focus({ preventScroll: true });
+    $(".creator-layout").scrollTop = 0;
+  }
+  $("#assistant-open").onclick = openAssistant;
+  $("#assistant-letter").onclick = openAssistant;
+  $("#assistant-close").onclick = () => closeAssistant();
   $("#assistant-cancel").onclick = () => request?.abort();
   function history(text, who) {
     const p = document.createElement("p");
@@ -672,6 +690,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       `Usaste «${selectedOption.label}» en tu carta, con tus últimos cambios.`,
       "selection-message",
     );
+    track("assistant_applied");
     undo = getGift();
     setGift(normalizeGift({ ...undo, ...proposal }));
     save();
@@ -682,6 +701,9 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     selectedOption = null;
     $("#assistant-status").textContent =
       "Aplicado. Puedes seguir dándole tu toque.";
+    closeAssistant(false);
+    go($("#f-to").value.trim() ? 2 : 0);
+    toast("Tu idea ya está en la carta. Puedes seguir editándola. ♡");
   };
   $("#assistant-discard").onclick = () => {
     proposal = null;
@@ -700,6 +722,8 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
   };
   document.addEventListener("flores:modal", (e) => {
     if (!e.detail.open) {
+      if ($("#gift-form").classList.contains("assistant-mode"))
+        closeAssistant(false);
       request?.abort();
       draftVoice.pause();
       stopRecording();

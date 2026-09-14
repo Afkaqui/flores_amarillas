@@ -513,3 +513,45 @@ summary:focus-visible {
     padding-top: 10px;
   }
 }
+
+/* Inspiration is a focused screen inside the creator, not a fourth mixed step. */
+.creator.assistant-mode .creator-heading,
+.creator.assistant-mode .creator-steps,
+.creator.assistant-mode .creator-step,
+.creator.assistant-mode #step-next,
+.creator.assistant-mode #gift-submit {
+  display: none;
+}
+.creator.assistant-mode .creator-layout {
+  display: block;
+}
+.creator.assistant-mode .assistant-panel {
+  margin: 0;
+  border: 0;
+  padding: 12px 4px;
+  background: transparent;
+}
+.creator.assistant-mode .assistant-title {
+  padding-right: 54px;
+}
+.creator.assistant-mode .assistant-title b {
+  font: 30px/1.2 var(--fuente-titulo);
+}
+.creator.assistant-mode .assistant-title small {
+  font-size: 14px;
+}
+.creator.assistant-mode #assistant-close {
+  display: none;
+}
+.creator.assistant-mode .assistant-disclosure {
+  max-width: 680px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.creator.assistant-mode .creator-footer {
+  display: flex;
+}
+.creator.assistant-mode #gift-cancel {
+  width: auto;
+  margin-left: auto;
+}

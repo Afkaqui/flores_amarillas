@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Métricas · Flores Amarillas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f6f7f1;
+      color: #304a39;
+      font:
+        15px/1.6 system-ui,
+        sans-serif;
+    }
+    main {
+      max-width: 1160px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      font:
+        38px Georgia,
+        serif;
+      margin: 6px 0;
+    }
+    h2 {
+      font:
+        25px Georgia,
+        serif;
+      margin: 0 0 18px;
+    }
+    .eyebrow {
+      letter-spacing: 0.16em;
+      font-size: 11px;
+      color: #7b8c70;
+    }
+    button,
+    select {
+      font: inherit;
+      min-height: 44px;
+      padding: 8px 14px;
+      border: 1px solid #d8dfd0;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    button:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #597b50;
+      outline-offset: 2px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .tile,
+    section {
+      background: #fffefb;
+      border: 1px solid #e0e4d7;
+      border-radius: 18px;
+      padding: 22px;
+    }
+    .tile strong {
+      display: block;
+      font:
+        32px Georgia,
+        serif;
+      margin: 8px 0;
+    }
+    .tile small,
+    small,
+    .muted {
+      color: #7d8776;
+    }
+    section {
+      margin-bottom: 20px;
+      overflow: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e6e9df;
+      white-space: nowrap;
+    }
+    th {
+      font-weight: 600;
+    }
+    .stages {
+      display: grid;
+      gap: 14px;
+    }
+    .stage {
+      display: grid;
+      grid-template-columns: 180px 1fr 80px;
+      align-items: center;
+      gap: 12px;
+    }
+    .track {
+      height: 10px;
+      background: #edf0e5;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+    .bar {
+      height: 100%;
+      min-width: 0;
+      background: #93a678;
+      border-radius: 9px;
+    }
+    .note {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .error {
+      color: #9b4451;
+    }
+    .status {
+      min-height: 24px;
+      font-size: 13px;
+    }
+    @media (max-width: 600px) {
+      main {
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      h1 {
+        font-size: 30px;
+      }
+      .stage {
+        grid-template-columns: 1fr 60px;
+      }
+      .track {
+        grid-column: 1/-1;
+        grid-row: auto;
+      }
+      .tile,
+      section {
+        padding: 16px;
+      }
+    }
+  </style>
+  <main>
+    <header>
+      <div>
+        <div class="eyebrow">FLORES AMARILLAS · PANEL LOCAL</div>
+        <h1>Lo que está floreciendo</h1>
+        <p class="muted">Visitas, regalos y salud del servicio.</p>
+      </div>
+      <div class="actions">
+        <label
+          >Periodo
+          <select id="days">
+            <option value="1">Hoy</option>
+            <option value="7" selected>7 días</option>
+            <option value="30">30 días</option>
+            <option value="90">90 días</option>
+            <option value="365">Un año</option>
+          </select></label
+        ><button id="refresh">Actualizar</button
+        ><button id="export">Descargar JSON</button>
+      </div>
+    </header>
+    <p id="status" class="status" role="status">Consultando actividad…</p>
+    <div id="cards" class="grid"></div>
+    <section>
+      <h2>El recorrido del regalo</h2>
+      <p class="note muted">
+        Actividad por etapa. Las personas pueden volver, repetir y entrar al
+        asistente desde distintos pasos.
+      </p>
+      <div id="stages" class="stages"></div>
+    </section>
+    <section>
+      <h2>Día a día</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha · Lima</th>
+            <th>Visitas</th>
+            <th>Regalos creados</th>
+            <th>Aperturas</th>
+            <th>Respuestas</th>
+          </tr>
+        </thead>
+        <tbody id="daily"></tbody>
+      </table>
+    </section>
+    <section>
+      <h2>Servicio y volumen</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Ruta</th>
+            <th>Peticiones</th>
+            <th>4xx</th>
+            <th>5xx</th>
+            <th>Media</th>
+            <th>P95 estimado</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+          </tr>
+        </thead>
+        <tbody id="http"></tbody>
+      </table>
+    </section>
+    <section>
+      <h2>De dónde llegan</h2>
+      <div id="sources" class="stages"></div>
+      <p class="note muted">
+        Origen declarado por el navegador: no se guardan URLs de procedencia
+        completas.
+      </p>
+    </section>
+    <section>
+      <h2>Cómo leer estas cifras</h2>
+      <ul id="notes" class="note"></ul>
+      <p id="stock" class="note muted"></p>
+    </section>
+  </main>
+  <script src="/dashboard.js" defer></script>
+</html>
