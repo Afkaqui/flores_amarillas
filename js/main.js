@@ -172,6 +172,7 @@ async function toggleMusic(want = !musicWanted, { quiet = false } = {}) {
     music.pausar();
     return;
   }
+  if (document.hidden || music.suspendida) return;
   if (!musicReady) musicReady = music.preparar();
   $("#btn-sound").textContent = "…";
   const ok = await musicReady;
@@ -182,7 +183,7 @@ async function toggleMusic(want = !musicWanted, { quiet = false } = {}) {
       toast("No pudimos cargar la música. Puedes volver a intentarlo.");
     return;
   }
-  if (musicWanted) {
+  if (musicWanted && !document.hidden && !music.suspendida) {
     music.volumen = 5;
     music.reproducir();
     music.atenuar(26, reducedMotion.matches ? 0 : 1400);
@@ -194,6 +195,7 @@ $("#reveal-music").addEventListener("change", (event) =>
 );
 function startDefaultMusic(event) {
   if (
+    document.hidden || music.suspendida ||
     !musicWanted ||
     music.sonando ||
     event.target.closest?.("#btn-sound, #reveal-music, .voice-player")
@@ -206,6 +208,21 @@ function startDefaultMusic(event) {
 }
 document.addEventListener("pointerdown", startDefaultMusic, { capture: true });
 document.addEventListener("keydown", startDefaultMusic, { capture: true });
+function pausePageAudio() {
+  music.suspender(true);
+  audioContext?.suspend().catch(() => {});
+}
+function resumePageAudio() {
+  if (document.hidden) return;
+  music.suspender(false);
+  if (musicWanted) toggleMusic(true, { quiet: true });
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pausePageAudio();
+  else resumePageAudio();
+});
+window.addEventListener("pagehide", pausePageAudio);
+window.addEventListener("pageshow", resumePageAudio);
 toggleMusic(true, { quiet: true });
 document.addEventListener("flores:voice-play", () => music.atenuar(4, 200));
 document.addEventListener("flores:voice-stop", () => {
@@ -217,7 +234,7 @@ document.addEventListener("flores:voice-stop", () => {
     music.atenuar(26, 400);
 });
 function seedSound() {
-  if (!musicWanted) return;
+  if (!musicWanted || document.hidden || music.suspendida) return;
   try {
     audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
     audioContext.resume();

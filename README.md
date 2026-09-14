@@ -6,7 +6,7 @@ Un jardín 3D para sembrar flores, escribir una carta y compartir un regalo sin 
 
 - Portada con cielo azul, prado verde y flores amarillas. Interfaz marfil, verde y rosa.
 - Creador en tres pasos: para quién, su ramo, tu carta. Vista previa y borrador automático.
-- Sobre personalizado para quien recibe; música activada por defecto y botón para silenciar. Si el navegador bloquea el inicio automático, se reintenta en el primer gesto.
+- Sobre personalizado para quien recibe; música activada por defecto y botón para silenciar. Si el navegador bloquea el inicio automático, se reintenta en el primer gesto. La música se pausa al ocultar o abandonar la página y se reanuda al volver sólo si la persona la dejó activada.
 - Dibujos adjuntos a la carta (hasta seis), paleta de cinco colores, plantillas de flor/corazón/destello, trazos suaves, edición, deshacer y dedicatorias.
 - Detalles de la carta con dibujos, fotos, voz y respuesta opcional del destinatario.
 - Tres fotos opcionales con dedicatoria, procesadas a WebP y mostradas completas; voz hasta 30 segundos con reproductor propio, normalizada a Ogg.
@@ -75,7 +75,7 @@ El ajuste de movimiento reducido evita vuelos de cámara, caída de pétalos y e
 ## Pruebas
 
 ```sh
-node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs tests/render-quality.test.mjs tests/sharing.test.mjs
+node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs tests/render-quality.test.mjs tests/sharing.test.mjs tests/audio.test.mjs
 node server/seguro.test.mjs
 # Usar exclusivamente una base de pruebas:
 DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --env-file=.env --test tests/database.test.mjs tests/api.test.mjs tests/metrics.test.mjs tests/metrics-security.test.mjs

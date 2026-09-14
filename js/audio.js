@@ -44,6 +44,7 @@ export class Musica {
     this.contenedor = contenedor;
     this.player = null;
     this.sonando = false;
+    this.suspendida = document.hidden;
     this.disponible = false;
     this.volumen = 32;
     this.onCambio = () => {};
@@ -87,6 +88,10 @@ export class Musica {
             },
             onStateChange: (e) => {
               // 1 = reproduciendo, 2 = pausa, 0 = terminó
+              if (e.data === 1 && (document.hidden || this.suspendida)) {
+                this.pausar();
+                return;
+              }
               if (e.data === 1) this.sonando = true;
               if (e.data === 2 || e.data === 0) this.sonando = false;
               this.onCambio(this.sonando);
@@ -110,7 +115,7 @@ export class Musica {
   }
 
   reproducir() {
-    if (!this.disponible || !this.player) return;
+    if (document.hidden || this.suspendida || !this.disponible || !this.player) return;
     try {
       this.player.unMute();
       this.player.setVolume(this.volumen);
@@ -122,14 +127,21 @@ export class Musica {
   }
 
   pausar() {
+    cancelAnimationFrame(this.fadeFrame);
     if (!this.disponible || !this.player) return;
     try {
+      this.player.mute();
       this.player.pauseVideo();
       this.sonando = false;
       this.onCambio(false);
     } catch {
       /* noop */
     }
+  }
+
+  suspender(value) {
+    this.suspendida = value;
+    if (value) this.pausar();
   }
 
   alternar() {
@@ -142,7 +154,7 @@ export class Musica {
   atenuar(destino = 12, ms = 800) {
     cancelAnimationFrame(this.fadeFrame);
     this.volumen = destino;
-    if (!this.disponible || !this.player) return;
+    if (document.hidden || this.suspendida || !this.disponible || !this.player) return;
     if (!ms) {
       this.player.setVolume(destino);
       return;
