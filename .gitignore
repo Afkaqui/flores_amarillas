@@ -18,3 +18,10 @@ deploy/servidor.local
 
 # Config local de herramientas
 .claude/
+
+# Local analysis
+.codegraph/
+.serena/
+
+# Local video diagnostics
+preview-output/

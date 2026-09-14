@@ -1,12 +1,14 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import anime from 'animejs';
-import { Flower, mulberry32 } from './flower.js';
-import { Bichos } from './bichos.js';
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import anime from "animejs";
+import { Flower, mulberry32 } from "./flower.js";
+import { Bichos } from "./bichos.js";
+import { PAPERS, RIBBONS } from "../shared/gift.js";
+import { reducedMotion, duration, pause } from "./ui.js";
 
 const TWO_PI = Math.PI * 2;
 
@@ -24,8 +26,16 @@ export class Garden {
     this.flores = [];
     this.reloj = new THREE.Clock();
     this.tiempo = 0;
-    this.viento = 1;
+    this.viento = 0.55;
+    this.calidadBaja =
+      innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4;
     this.bouquetActivo = false;
+    this.estilo ||= {
+      cinta: "rosa",
+      papel: "marfil",
+      ambiente: "atardecer",
+      semilla: 0.421,
+    };
 
     this._initRenderer();
     this._initScene();
@@ -37,11 +47,14 @@ export class Garden {
     this._initPolen();
     this._initBichos();
     this._initPost();
+    this._initLuciernagas();
+    this.aplicarEstilo(this.estilo);
+    reducedMotion.addEventListener("change", () => this._aplicarRotacion());
 
     this.raycaster = new THREE.Raycaster();
     this.puntero = new THREE.Vector2();
 
-    window.addEventListener('resize', () => this.resize());
+    window.addEventListener("resize", () => this.resize());
     this.resize();
   }
 
@@ -51,9 +64,11 @@ export class Garden {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
-      powerPreference: 'high-performance',
+      powerPreference: "default",
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, this.calidadBaja ? 1.25 : 1.75),
+    );
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -62,7 +77,7 @@ export class Garden {
 
   _initScene() {
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0xdaeeff, 34, 120);
+    this.scene.fog = new THREE.Fog(0xb8dce9, 30, 100);
 
     this.camera = new THREE.PerspectiveCamera(48, 1, 0.1, 600);
     this.camera.position.set(0, 13, 26);
@@ -79,19 +94,23 @@ export class Garden {
     this.controls.zoomSpeed = 0.7;
     this.controls.target.set(0, 3, 0);
     this.controls.autoRotateSpeed = 0.28;
-    this._rotarDeseado = true;   // lo que pide el flujo de la app
-    this.vistaFijada = false;    // lo que pidió la persona (manda esto)
+    this._rotarDeseado = true; // lo que pide el flujo de la app
+    this.vistaFijada = true; // lo que pidió la persona (manda esto)
     this._aplicarRotacion();
   }
 
   _initLuces() {
     const hemi = new THREE.HemisphereLight(0xbfe4ff, 0x6b8a3a, 0.85);
     this.scene.add(hemi);
+    this.hemi = hemi;
 
     const sol = new THREE.DirectionalLight(0xfff2c4, 1.85);
     sol.position.set(11, 16, 7);
     sol.castShadow = true;
-    sol.shadow.mapSize.set(2048, 2048);
+    sol.shadow.mapSize.set(
+      this.calidadBaja ? 1024 : 2048,
+      this.calidadBaja ? 1024 : 2048,
+    );
     const d = 17;
     sol.shadow.camera.left = -d;
     sol.shadow.camera.right = d;
@@ -108,6 +127,7 @@ export class Garden {
     const relleno = new THREE.DirectionalLight(0xffd98a, 0.45);
     relleno.position.set(-9, 5, -8);
     this.scene.add(relleno);
+    this.relleno = relleno;
   }
 
   _initCielo() {
@@ -115,9 +135,9 @@ export class Garden {
       side: THREE.BackSide,
       depthWrite: false,
       uniforms: {
-        uArriba: { value: new THREE.Color(0x4aa8e8) },
-        uMedio: { value: new THREE.Color(0xa9dcf7) },
-        uAbajo: { value: new THREE.Color(0xfff1c9) },
+        uArriba: { value: new THREE.Color(0x429be0) },
+        uMedio: { value: new THREE.Color(0x86cef4) },
+        uAbajo: { value: new THREE.Color(0xd8eff4) },
       },
       vertexShader: `
         varying vec3 vPos;
@@ -137,15 +157,22 @@ export class Garden {
     });
     const cielo = new THREE.Mesh(new THREE.SphereGeometry(260, 32, 20), mat);
     this.scene.add(cielo);
+    this.cieloMat = mat;
 
     // disco solar
     const solTex = discoTextura();
     const sprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: solTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+      new THREE.SpriteMaterial({
+        map: solTex,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
     );
     sprite.scale.setScalar(52);
-    sprite.position.set(60, 78, 40);
+    sprite.position.set(-35, 24, -95);
     this.scene.add(sprite);
+    this.sunSprite = sprite;
   }
 
   _initSuelo() {
@@ -158,7 +185,11 @@ export class Garden {
     pos.needsUpdate = true;
     geo.computeVertexNormals();
 
-    const mat = new THREE.MeshStandardMaterial({ color: 0x6a9b3c, roughness: 1, metalness: 0 });
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x679642,
+      roughness: 1,
+      metalness: 0,
+    });
     const suelo = new THREE.Mesh(geo, mat);
     suelo.receiveShadow = true;
     this.scene.add(suelo);
@@ -167,7 +198,7 @@ export class Garden {
 
   _initPasto() {
     const movil = window.innerWidth < 820;
-    const N = movil ? 9000 : 26000;
+    const N = this.calidadBaja ? 5000 : 14000;
 
     const hoja = new THREE.PlaneGeometry(0.055, 1, 1, 4);
     hoja.translate(0, 0.5, 0);
@@ -181,18 +212,23 @@ export class Garden {
     hoja.computeVertexNormals();
 
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, roughness: 0.9, metalness: 0, side: THREE.DoubleSide,
+      color: 0xffffff,
+      roughness: 0.9,
+      metalness: 0,
+      side: THREE.DoubleSide,
     });
     const uTime = { value: 0 };
     mat.onBeforeCompile = (sh) => {
       sh.uniforms.uTime = uTime;
-      sh.vertexShader = 'uniform float uTime;\nattribute float aRand;\n' + sh.vertexShader.replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
+      sh.vertexShader =
+        "uniform float uTime;\nattribute float aRand;\n" +
+        sh.vertexShader.replace(
+          "#include <begin_vertex>",
+          `#include <begin_vertex>
          float sway = sin(uTime * 1.4 + aRand * 12.0) * 0.16 + sin(uTime * 0.6 + aRand * 5.0) * 0.07;
          transformed.x += sway * pow(max(transformed.y, 0.0), 1.6);
-         transformed.z += sway * 0.5 * pow(max(transformed.y, 0.0), 1.6);`
-      );
+         transformed.z += sway * 0.5 * pow(max(transformed.y, 0.0), 1.6);`,
+        );
     };
     this._pastoTime = uTime;
 
@@ -215,11 +251,15 @@ export class Garden {
       dummy.scale.set(0.7 + rnd() * 0.5, h, 1);
       dummy.updateMatrix();
       inst.setMatrixAt(i, dummy.matrix);
-      col.setHSL(0.23 + rnd() * 0.07, 0.5 + rnd() * 0.22, 0.2 + rnd() * 0.16);
+      col.setHSL(
+        0.245 + rnd() * 0.065,
+        0.46 + rnd() * 0.2,
+        0.22 + rnd() * 0.15,
+      );
       inst.setColorAt(i, col);
       rands[i] = rnd();
     }
-    hoja.setAttribute('aRand', new THREE.InstancedBufferAttribute(rands, 1));
+    hoja.setAttribute("aRand", new THREE.InstancedBufferAttribute(rands, 1));
     inst.instanceMatrix.needsUpdate = true;
     this.scene.add(inst);
     this.pasto = inst;
@@ -230,13 +270,18 @@ export class Garden {
 
     // colinas lejanas: masas de follaje, no esferas lisas
     const matColina = new THREE.MeshStandardMaterial({
-      vertexColors: true, roughness: 1, flatShading: true,
+      vertexColors: true,
+      roughness: 1,
+      flatShading: true,
     });
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * TWO_PI + rnd() * 0.4;
       const r = 62 + rnd() * 22;
       const s = 16 + rnd() * 16;
-      const m = new THREE.Mesh(follaje(s, 2, rnd, 0x6ea34d, 0x3e6b34, 0.1), matColina);
+      const m = new THREE.Mesh(
+        follaje(s, 2, rnd, 0x6ea34d, 0x3e6b34, 0.1),
+        matColina,
+      );
       m.position.set(Math.cos(a) * r, -s * 0.55 + rnd() * 2, Math.sin(a) * r);
       m.scale.y = 0.42 + rnd() * 0.25;
       this.scene.add(m);
@@ -245,9 +290,14 @@ export class Garden {
     // arbustos: muchos lóbulos chicos + hojas sueltas encima, para que se lean
     // como follaje y no como una piedra verde
     const matArb = new THREE.MeshStandardMaterial({
-      vertexColors: true, roughness: 0.95, flatShading: true,
+      vertexColors: true,
+      roughness: 0.95,
+      flatShading: true,
     });
-    const matTronco = new THREE.MeshStandardMaterial({ color: 0x5a3f22, roughness: 1 });
+    const matTronco = new THREE.MeshStandardMaterial({
+      color: 0x5a3f22,
+      roughness: 1,
+    });
 
     const geoHojita = hojaCarta();
     const matrices = [];
@@ -266,7 +316,10 @@ export class Garden {
       const g = new THREE.Group();
       const alto = 0.85 + rnd() * 0.7;
 
-      const tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.13, alto, 6), matTronco);
+      const tronco = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07, 0.13, alto, 6),
+        matTronco,
+      );
       tronco.position.y = alto * 0.5;
       tronco.castShadow = true;
       g.add(tronco);
@@ -281,9 +334,12 @@ export class Garden {
         const p = new THREE.Vector3(
           Math.cos(ang) * rad,
           alto * 0.72 + rnd() * 0.55 - rad * 0.42,
-          Math.sin(ang) * rad
+          Math.sin(ang) * rad,
         );
-        const b = new THREE.Mesh(follaje(s, 1, rnd, 0x74b84a, 0x2c5c2b, 0.18), matArb);
+        const b = new THREE.Mesh(
+          follaje(s, 1, rnd, 0x74b84a, 0x2c5c2b, 0.18),
+          matArb,
+        );
         b.position.copy(p);
         b.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3);
         b.castShadow = true;
@@ -292,7 +348,8 @@ export class Garden {
         lobulos.push({ p, s });
       }
 
-      const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+      const x = Math.cos(a) * rr,
+        z = Math.sin(a) * rr;
       g.position.set(x, alturaTerreno(x, z) - 0.05, z);
       g.scale.setScalar(0.85 + rnd() * 0.55);
       this.scene.add(g);
@@ -303,16 +360,22 @@ export class Garden {
         const cuantas = 5 + Math.floor(rnd() * 5);
         for (let k = 0; k < cuantas; k++) {
           dir.set(rnd() * 2 - 1, rnd() * 2 - 1, rnd() * 2 - 1).normalize();
-          if (dir.y < -0.2) dir.y = -dir.y;          // casi ninguna apunta al piso
+          if (dir.y < -0.2) dir.y = -dir.y; // casi ninguna apunta al piso
           dir.normalize();
           posHoja.copy(l.p).addScaledVector(dir, l.s * 0.82);
           qTmp.setFromUnitVectors(vArriba, dir);
-          qTmp.multiply(new THREE.Quaternion().setFromAxisAngle(vArriba, rnd() * TWO_PI));
+          qTmp.multiply(
+            new THREE.Quaternion().setFromAxisAngle(vArriba, rnd() * TWO_PI),
+          );
           const e = l.s * (0.5 + rnd() * 0.45);
           escHoja.set(e, e, e);
           mTmp.compose(posHoja, qTmp, escHoja);
           matrices.push(g.matrixWorld.clone().multiply(mTmp));
-          colHoja.setHSL(0.255 + rnd() * 0.06, 0.45 + rnd() * 0.25, 0.24 + dir.y * 0.1 + rnd() * 0.12);
+          colHoja.setHSL(
+            0.255 + rnd() * 0.06,
+            0.45 + rnd() * 0.25,
+            0.24 + dir.y * 0.1 + rnd() * 0.12,
+          );
           coloresHoja.push(colHoja.clone());
         }
       }
@@ -320,8 +383,11 @@ export class Garden {
 
     const hojas = new THREE.InstancedMesh(
       geoHojita,
-      new THREE.MeshStandardMaterial({ roughness: 0.85, side: THREE.DoubleSide }),
-      matrices.length
+      new THREE.MeshStandardMaterial({
+        roughness: 0.85,
+        side: THREE.DoubleSide,
+      }),
+      matrices.length,
     );
     matrices.forEach((m, k) => {
       hojas.setMatrixAt(k, m);
@@ -334,14 +400,20 @@ export class Garden {
 
     // piedritas sueltas, para que el claro no sea sólo pasto
     const matPiedra = new THREE.MeshStandardMaterial({
-      vertexColors: true, roughness: 0.95, flatShading: true,
+      vertexColors: true,
+      roughness: 0.95,
+      flatShading: true,
     });
     for (let i = 0; i < 10; i++) {
       const a = rnd() * TWO_PI;
       const r = 6 + rnd() * 20;
       const s = 0.18 + rnd() * 0.34;
-      const m = new THREE.Mesh(follaje(s, 0, rnd, 0xcfc7b6, 0x9a9184, 0.32), matPiedra);
-      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      const m = new THREE.Mesh(
+        follaje(s, 0, rnd, 0xcfc7b6, 0x9a9184, 0.32),
+        matPiedra,
+      );
+      const x = Math.cos(a) * r,
+        z = Math.sin(a) * r;
       m.position.set(x, alturaTerreno(x, z) + s * 0.25, z);
       m.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3);
       m.scale.y = 0.6 + rnd() * 0.3;
@@ -353,7 +425,11 @@ export class Garden {
     // nubes
     this.nubes = [];
     const matNube = new THREE.MeshStandardMaterial({
-      color: 0xffffff, roughness: 1, flatShading: true, emissive: 0x8899aa, emissiveIntensity: 0.18,
+      color: 0xffffff,
+      roughness: 1,
+      flatShading: true,
+      emissive: 0x8899aa,
+      emissiveIntensity: 0.18,
     });
     for (let i = 0; i < 9; i++) {
       const g = new THREE.Group();
@@ -361,7 +437,11 @@ export class Garden {
       for (let j = 0; j < n; j++) {
         const s = 2.4 + rnd() * 3.2;
         const b = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 1), matNube);
-        b.position.set((rnd() - 0.5) * 9, (rnd() - 0.5) * 1.6, (rnd() - 0.5) * 5);
+        b.position.set(
+          (rnd() - 0.5) * 9,
+          (rnd() - 0.5) * 1.6,
+          (rnd() - 0.5) * 5,
+        );
         b.scale.y = 0.55;
         g.add(b);
       }
@@ -375,7 +455,7 @@ export class Garden {
   }
 
   _initPolen() {
-    const N = 700;
+    const N = this.calidadBaja ? 140 : 300;
     const pos = new Float32Array(N * 3);
     const fase = new Float32Array(N);
     const rnd = mulberry32(99);
@@ -388,8 +468,8 @@ export class Garden {
       fase[i] = rnd() * TWO_PI;
     }
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("aFase", new THREE.BufferAttribute(fase, 1));
 
     const mat = new THREE.ShaderMaterial({
       transparent: true,
@@ -397,7 +477,7 @@ export class Garden {
       blending: THREE.AdditiveBlending,
       uniforms: {
         uTime: { value: 0 },
-        uTex: { value: discoTextura(64, 'rgba(255,232,150,') },
+        uTex: { value: discoTextura(64, "rgba(255,232,150,") },
         uSize: { value: 34 * Math.min(window.devicePixelRatio, 2) },
       },
       vertexShader: `
@@ -430,8 +510,8 @@ export class Garden {
   _initBichos() {
     const movil = window.innerWidth < 820;
     this.bichos = new Bichos(this.scene, {
-      abejas: movil ? 5 : 9,
-      mariposas: movil ? 4 : 7,
+      abejas: movil ? 2 : 4,
+      mariposas: movil ? 3 : 5,
     });
   }
 
@@ -456,37 +536,43 @@ export class Garden {
   }
 
   sembrar(punto, { duracion = 1500, retraso = 0, seed = Math.random() } = {}) {
-    const f = new Flower(seed);
-    f.position.copy(punto);
-    f.userData.origen = { pos: f.position.clone(), rot: f.rotation.clone() };
-    this.scene.add(f);
-    this.flores.push(f);
-
-    const prox = { t: 0 };
-    anime({
-      targets: prox,
-      t: 1,
-      duration: duracion,
-      delay: retraso,
-      easing: 'easeOutElastic(1, .75)',
-      update: () => f.setGrowth(prox.t),
-    });
-    return f;
+    const flower = new Flower(seed);
+    flower.position.copy(punto);
+    flower.userData.origen = {
+      pos: flower.position.clone(),
+      rot: flower.rotation.clone(),
+    };
+    this.scene.add(flower);
+    this.flores.push(flower);
+    if (!duracion || reducedMotion.matches) flower.setGrowth(1);
+    else
+      flower.userData.crecimiento = {
+        inicio: performance.now() + duration(retraso),
+        duracion: duration(duracion),
+      };
+    return flower;
   }
 
   /** Flores decorativas ya abiertas (fondo del intro). No cuentan como sembradas. */
-  sembrarCampo(n = 24, { rMin = 4, rMax = 24 } = {}) {
+  sembrarCampo(n = 60) {
+    const rnd = mulberry32(99);
     for (let i = 0; i < n; i++) {
-      const a = Math.random() * TWO_PI;
-      const r = rMin + Math.pow(Math.random(), 0.7) * (rMax - rMin);
-      const x = Math.cos(a) * r;
-      const z = Math.sin(a) * r;
-      const f = new Flower(Math.random());
-      f.position.set(x, alturaTerreno(x, z), z);
-      f.userData.origen = { pos: f.position.clone(), rot: f.rotation.clone() };
-      f.setGrowth(1);
-      this.scene.add(f);
-      this.flores.push(f);
+      const cluster = i % 8,
+        angle = (cluster / 8) * TWO_PI;
+      const distance = 6 + (cluster % 3) * 2.7;
+      const x = Math.cos(angle) * distance + (rnd() - 0.5) * 3.3;
+      const z = -Math.abs(Math.sin(angle) * distance) + (rnd() - 0.5) * 2.4 - 4;
+      const flower = new Flower(rnd());
+      flower.position.set(x, alturaTerreno(x, z), z);
+      flower.userData.decorativa = true;
+      flower.userData.origen = {
+        pos: flower.position.clone(),
+        rot: flower.rotation.clone(),
+      };
+      flower.fijarEscala(0.6 + rnd() * 0.35);
+      flower.setGrowth(1);
+      this.scene.add(flower);
+      this.flores.push(flower);
     }
   }
 
@@ -501,7 +587,7 @@ export class Garden {
         this.sembrar(new THREE.Vector3(x, alturaTerreno(x, z), z), {
           retraso: i * 90 + (opts.retraso || 0),
           duracion: opts.duracion ?? 1500,
-        })
+        }),
       );
     }
     return creadas;
@@ -511,20 +597,30 @@ export class Garden {
     for (const f of this.flores) {
       const prox = { t: f.growth };
       anime({
-        targets: prox, t: 0, duration: 600, easing: 'easeInBack',
+        targets: prox,
+        t: 0,
+        duration: 600,
+        easing: "easeInBack",
         update: () => f.setGrowth(prox.t),
-        complete: () => { this.scene.remove(f); f.dispose(); },
+        complete: () => {
+          this.scene.remove(f);
+          f.dispose();
+        },
       });
     }
     this.flores = [];
-    if (this.ramo) { this.scene.remove(this.ramo); this.ramo = null; }
+    if (this.ramo) {
+      this.scene.remove(this.ramo);
+      this.ramo = null;
+    }
     this.bouquetActivo = false;
   }
 
   /* ============================ cámara ============================ */
 
   _aplicarRotacion() {
-    this.controls.autoRotate = this._rotarDeseado && !this.vistaFijada;
+    this.controls.autoRotate =
+      this._rotarDeseado && !this.vistaFijada && !reducedMotion.matches;
   }
 
   /** Lo que quiere el flujo (entrar al jardín, armar el ramo, etc.) */
@@ -540,19 +636,35 @@ export class Garden {
     return this.vistaFijada;
   }
 
-  volar(pos, target, duracion = 2200, easing = 'easeInOutQuart') {
+  volar(pos, target, duracion = 2200, easing = "easeInOutQuart") {
     this.autoRotar(false);
+    duracion = duration(duracion);
+    if (!duracion) {
+      this._camGen = (this._camGen || 0) + 1;
+      this.camera.position.copy(pos);
+      this.controls.target.copy(target);
+      this.controls.update();
+      return Promise.resolve();
+    }
     // Cada vuelo tiene su "generación": si empieza otro, el anterior deja de
     // escribir sobre la cámara (evitamos anime.remove, que mata el motor).
     const gen = (this._camGen = (this._camGen || 0) + 1);
     const p = {
-      x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z,
-      tx: this.controls.target.x, ty: this.controls.target.y, tz: this.controls.target.z,
+      x: this.camera.position.x,
+      y: this.camera.position.y,
+      z: this.camera.position.z,
+      tx: this.controls.target.x,
+      ty: this.controls.target.y,
+      tz: this.controls.target.z,
     };
     const inst = anime({
       targets: p,
-      x: pos.x, y: pos.y, z: pos.z,
-      tx: target.x, ty: target.y, tz: target.z,
+      x: pos.x,
+      y: pos.y,
+      z: pos.z,
+      tx: target.x,
+      ty: target.y,
+      tz: target.z,
       duration: duracion,
       easing,
       update: () => {
@@ -564,15 +676,32 @@ export class Garden {
     return Promise.race([inst.finished, espera(duracion + 250)]);
   }
 
-  vistaJardin(duracion = 2600) {
-    return this.volar(new THREE.Vector3(0, 3.1, 9.5), new THREE.Vector3(0, 1.1, 0), duracion)
-      .then(() => { this.controls.autoRotateSpeed = 0.22; this.autoRotar(true); });
+  vistaJardin(duracion = 1800) {
+    this.controls.enabled = true;
+    return this.volar(
+      new THREE.Vector3(0, 3.1, 9.5),
+      new THREE.Vector3(0, 1.1, 0),
+      duracion,
+    ).then(() => {
+      this.controls.autoRotateSpeed = 0.22;
+      this.autoRotar(true);
+    });
   }
 
-  vistaRamo(duracion = 1600) {
+  vistaRamo(duracion = 1200) {
     this.autoRotar(false);
-    // apuntamos por debajo del ramo: así queda en la mitad de arriba del cuadro
-    return this.volar(new THREE.Vector3(0, 2.5, 4.7), new THREE.Vector3(0, 0.85, 0), duracion);
+    const mobile = innerWidth < 641;
+    const portada = document.body.dataset.mode === "intro";
+    this.controls.enabled = !portada;
+    const target = mobile
+      ? new THREE.Vector3(0, portada ? 2.65 : 0.15, 0)
+      : new THREE.Vector3(portada ? -1.65 : 1.05, 1.4, 0);
+    const distance = mobile ? (portada ? 6.4 : 6.2) : 5.9;
+    return this.volar(
+      new THREE.Vector3(target.x, target.y + 1.25, distance),
+      target,
+      duracion,
+    );
   }
 
   /* ============================ ramo ============================ */
@@ -582,122 +711,139 @@ export class Garden {
    * atado de tallos asomando por abajo. El origen del grupo es el nudo.
    */
   _crearEnvoltura() {
-    const g = new THREE.Group();
-    const rnd = mulberry32(4242);
-
-    // --- pliegos de papel ---
-    const forma = new THREE.Shape();
-    forma.moveTo(0, 0);
-    forma.bezierCurveTo(0.30, 0.26, 0.42, 0.78, 0.20, 1.04);
-    forma.bezierCurveTo(0.10, 1.12, -0.10, 1.12, -0.20, 1.04);
-    forma.bezierCurveTo(-0.42, 0.78, -0.30, 0.26, 0, 0);
-    const geoPliego = new THREE.ShapeGeometry(forma, 14);
-    const pp = geoPliego.attributes.position;
-    for (let i = 0; i < pp.count; i++) {
-      const x = pp.getX(i), y = pp.getY(i);
-      pp.setZ(i, -0.34 * x * x + 0.05 * y);   // el papel se acucharona
-    }
-    pp.needsUpdate = true;
-    geoPliego.computeVertexNormals();
-
-    const papel = (color) => new THREE.MeshStandardMaterial({
-      color, roughness: 0.92, side: THREE.DoubleSide,
-      emissive: 0xfff0d2, emissiveIntensity: 0.26,   // el reverso no se va a negro
-    });
-    const papeles = [papel(0xfdf6e4), papel(0xf0dcb0), papel(0xfbeccb)];
-    const capas = [
-      { n: 8, esc: 0.94, tilt: 0.92, y: -0.02, off: 0 },
-      { n: 6, esc: 0.70, tilt: 0.62, y: 0.04, off: 0.45 },
-    ];
-    for (const capa of capas) {
-      for (let i = 0; i < capa.n; i++) {
-        const pivot = new THREE.Object3D();
-        pivot.rotation.y = (i / capa.n) * TWO_PI + capa.off + (rnd() - 0.5) * 0.12;
-        const m = new THREE.Mesh(geoPliego, papeles[i % papeles.length]);
-        m.rotation.x = capa.tilt + (rnd() - 0.5) * 0.12;
-        m.rotation.z = (rnd() - 0.5) * 0.14;
-        m.position.set(0, capa.y, 0.03);
-        m.scale.setScalar(capa.esc * (0.92 + rnd() * 0.18));
-        m.castShadow = true;
-        pivot.add(m);
-        g.add(pivot);
+    const group = new THREE.Group();
+    const paperColor = PAPERS[this.estilo.papel] || PAPERS.marfil;
+    const ribbonColor = RIBBONS[this.estilo.cinta] || RIBBONS.rosa;
+    // Continuous, pleated paper: narrow at the knot, open around the flowers.
+    for (let layer = 0; layer < 2; layer++) {
+      const points = [],
+        indices = [],
+        segments = 72,
+        rows = 10;
+      for (let row = 0; row <= rows; row++) {
+        const t = row / rows;
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * TWO_PI;
+          const pleat = Math.sin(angle * 9 + layer) * 0.055 * t * t;
+          const radius = 0.1 + Math.pow(t, 1.2) * (0.66 + layer * 0.1) + pleat;
+          const top = 0.63 + Math.cos(angle * 3 + layer) * 0.09;
+          points.push(
+            Math.cos(angle) * radius,
+            -0.17 + t * top + layer * 0.07,
+            Math.sin(angle) * radius,
+          );
+          if (row < rows && i < segments) {
+            const a = row * (segments + 1) + i,
+              b = a + segments + 1;
+            indices.push(a, b, a + 1, b, b + 1, a + 1);
+          }
+        }
       }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(points, 3),
+      );
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      const color = new THREE.Color(paperColor).multiplyScalar(
+        layer ? 1.03 : 0.94,
+      );
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.93,
+        side: THREE.DoubleSide,
+        emissive: paperColor,
+        emissiveIntensity: 0.1,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      group.add(mesh);
     }
-
-    // --- atado de tallos ---
-    const tallos = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.115, 0.055, 0.46, 10, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0x3f7a2e, roughness: 0.9, side: THREE.DoubleSide })
+    const stems = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.095, 0.075, 0.48, 12),
+      new THREE.MeshStandardMaterial({ color: 0x61734a, roughness: 0.85 }),
     );
-    tallos.position.y = -0.25;
-    g.add(tallos);
-
-    // --- lazo ---
-    const matLazo = new THREE.MeshStandardMaterial({ color: 0xe4761b, roughness: 0.45, side: THREE.DoubleSide });
-    const nudo = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.032, 8, 22), matLazo);
-    nudo.rotation.x = Math.PI / 2;
-    nudo.position.y = -0.07;
-    g.add(nudo);
-
-    for (const lado of [-1, 1]) {
-      const lazada = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.02, 6, 16), matLazo);
-      lazada.position.set(lado * 0.11, -0.05, 0.06);
-      lazada.rotation.set(0.5, 0, lado * 0.6);
-      g.add(lazada);
-
-      const cinta = new THREE.Shape();
-      cinta.moveTo(-0.028, 0);
-      cinta.lineTo(0.028, 0);
-      cinta.lineTo(0.05, -0.3);
-      cinta.lineTo(-0.012, -0.32);
-      const cola = new THREE.Mesh(new THREE.ShapeGeometry(cinta), matLazo);
-      cola.position.set(lado * 0.07, -0.09, 0.1);
-      cola.rotation.set(0.25, 0, lado * 0.35);
-      g.add(cola);
-    }
-
-    // --- verdes de relleno ---
-    const matVerde = new THREE.MeshStandardMaterial({ color: 0x4e8f3c, roughness: 0.8, side: THREE.DoubleSide });
-    const hojaForma = new THREE.Shape();
-    hojaForma.moveTo(0, 0);
-    hojaForma.bezierCurveTo(0.22, 0.24, 0.16, 0.78, 0, 1);
-    hojaForma.bezierCurveTo(-0.16, 0.78, -0.22, 0.24, 0, 0);
-    const geoHoja = new THREE.ShapeGeometry(hojaForma, 10);
-    for (let i = 0; i < 11; i++) {
-      const pivot = new THREE.Object3D();
-      pivot.rotation.y = rnd() * TWO_PI;
-      const h = new THREE.Mesh(geoHoja, matVerde);
-      h.rotation.x = 0.75 + rnd() * 0.35;
-      h.position.set((rnd() - 0.5) * 0.1, 0.1 + rnd() * 0.12, 0.16 + rnd() * 0.12);
-      h.scale.setScalar(0.3 + rnd() * 0.22);
-      pivot.add(h);
-      g.add(pivot);
-    }
-
-    // --- nubecita de flores blancas (tipo paniculata) ---
-    const matBlanca = new THREE.MeshStandardMaterial({
-      color: 0xfffdf2, roughness: 0.7, emissive: 0x554b33, emissiveIntensity: 0.25,
+    stems.position.y = -0.25;
+    group.add(stems);
+    const ribbon = new THREE.MeshStandardMaterial({
+      color: ribbonColor,
+      roughness: 0.52,
+      side: THREE.DoubleSide,
     });
-    const geoPunto = new THREE.SphereGeometry(0.015, 6, 5);
-    for (let i = 0; i < 40; i++) {
-      const a = rnd() * TWO_PI;
-      const r = 0.14 + rnd() * 0.34;
-      const b = new THREE.Mesh(geoPunto, matBlanca);
-      b.position.set(Math.cos(a) * r, 0.52 + rnd() * 0.5, Math.sin(a) * r);
-      b.scale.setScalar(0.7 + rnd() * 0.8);
-      g.add(b);
+    const knot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.085, 16, 10),
+      ribbon,
+    );
+    knot.scale.set(1, 0.7, 0.65);
+    knot.position.set(0, -0.05, 0.14);
+    group.add(knot);
+    for (const side of [-1, 1]) {
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, -0.05, 0.14),
+        new THREE.Vector3(side * 0.18, 0.06, 0.18),
+        new THREE.Vector3(side * 0.31, 0.02, 0.16),
+        new THREE.Vector3(side * 0.22, -0.09, 0.2),
+        new THREE.Vector3(0, -0.05, 0.14),
+      ]);
+      const loop = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 28, 0.026, 6, false),
+        ribbon,
+      );
+      group.add(loop);
+      const tail = new THREE.Shape();
+      tail.moveTo(-0.04, 0);
+      tail.lineTo(0.04, 0);
+      tail.bezierCurveTo(0.01, -0.17, 0.1, -0.32, 0.04, -0.48);
+      tail.lineTo(0, -0.43);
+      tail.lineTo(-0.04, -0.48);
+      tail.bezierCurveTo(0.02, -0.25, -0.08, -0.14, -0.04, 0);
+      const mesh = new THREE.Mesh(new THREE.ShapeGeometry(tail, 16), ribbon);
+      mesh.position.set(side * 0.04, -0.06, 0.16);
+      mesh.rotation.z = side * 0.3;
+      group.add(mesh);
     }
-
-    return g;
+    const rnd = mulberry32(4242);
+    const leaf = hojaCarta(),
+      leafMat = new THREE.MeshStandardMaterial({
+        color: 0x899978,
+        roughness: 0.85,
+        side: THREE.DoubleSide,
+      });
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * TWO_PI;
+      const mesh = new THREE.Mesh(leaf, leafMat);
+      mesh.position.set(Math.cos(angle) * 0.22, 0.18, Math.sin(angle) * 0.22);
+      mesh.rotation.set(Math.sin(angle) * 0.85, angle, -Math.cos(angle) * 0.85);
+      mesh.scale.setScalar(0.48 + rnd() * 0.15);
+      group.add(mesh);
+    }
+    const whiteGeo = new THREE.SphereGeometry(0.022, 6, 5);
+    const whiteMat = new THREE.MeshStandardMaterial({
+      color: 0xfff6dd,
+      roughness: 0.8,
+    });
+    for (let i = 0; i < 36; i++) {
+      const a = rnd() * TWO_PI,
+        r = 0.4 + rnd() * 0.3;
+      const mesh = new THREE.Mesh(whiteGeo, whiteMat);
+      mesh.position.set(Math.cos(a) * r, 0.52 + rnd() * 0.28, Math.sin(a) * r);
+      group.add(mesh);
+    }
+    return group;
   }
 
   /** Sitio (posición, inclinación y alto) de la flor i dentro de un ramo de n */
   _sitioEnRamo(i, n, base) {
-    const ang = i * 2.39996;                        // ángulo áureo: reparto parejo
+    const ang = i * 2.39996; // ángulo áureo: reparto parejo
     const k = n <= 1 ? 0 : Math.sqrt((i + 0.5) / n);
     const r = 0.42 * k;
     return {
-      pos: new THREE.Vector3(base.x + Math.cos(ang) * r, base.y, base.z + Math.sin(ang) * r),
+      pos: new THREE.Vector3(
+        base.x + Math.cos(ang) * r,
+        base.y,
+        base.z + Math.sin(ang) * r,
+      ),
       tiltZ: -Math.cos(ang) * k * 0.5,
       tiltX: Math.sin(ang) * k * 0.5,
       // domo: las del centro sobresalen, las del borde quedan más bajas
@@ -726,7 +872,15 @@ export class Garden {
     this.scene.add(ramo);
     this.ramo = ramo;
     ramo.scale.setScalar(0.001);
-    anime({ targets: ramo.scale, x: 1, y: 1, z: 1, duration: 900, delay: 500, easing: 'easeOutElastic(1, .6)' });
+    anime({
+      targets: ramo.scale,
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 900,
+      delay: 500,
+      easing: "easeOutElastic(1, .6)",
+    });
 
     const total = elegidas.length;
     elegidas.forEach((f, i) => {
@@ -734,21 +888,25 @@ export class Garden {
       const inicio = f.position.clone();
       const escalaFin = sitio.alto / f.userData.altura;
       const escalaIni = f.escalaBase;
-      const control = inicio.clone().lerp(sitio.pos, 0.5)
+      const control = inicio
+        .clone()
+        .lerp(sitio.pos, 0.5)
         .setY(Math.max(inicio.y, sitio.pos.y) + 2.2 + Math.random());
 
       const prox = { t: 0 };
       anime({
-        targets: prox, t: 1,
+        targets: prox,
+        t: 1,
         duration: 1500 + Math.random() * 400,
         delay: 350 + i * 55,
-        easing: 'easeInOutCubic',
+        easing: "easeInOutCubic",
         update: () => {
-          const t = prox.t, u = 1 - t;
+          const t = prox.t,
+            u = 1 - t;
           f.position.set(
             u * u * inicio.x + 2 * u * t * control.x + t * t * sitio.pos.x,
             u * u * inicio.y + 2 * u * t * control.y + t * t * sitio.pos.y,
-            u * u * inicio.z + 2 * u * t * control.z + t * t * sitio.pos.z
+            u * u * inicio.z + 2 * u * t * control.z + t * t * sitio.pos.z,
           );
           f.userData.tiltZ = sitio.tiltZ * t;
           f.userData.tiltX = sitio.tiltX * t;
@@ -773,11 +931,21 @@ export class Garden {
     this.scene.add(ramo);
     this.ramo = ramo;
     ramo.scale.setScalar(0.001);
-    anime({ targets: ramo.scale, x: 1, y: 1, z: 1, duration: 800, easing: 'easeOutElastic(1, .6)' });
+    anime({
+      targets: ramo.scale,
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 800,
+      easing: "easeOutElastic(1, .6)",
+    });
 
     for (let i = 0; i < n; i++) {
       const sitio = this._sitioEnRamo(i, n, base);
-      const f = this.sembrar(sitio.pos, { duracion: 1400, retraso: 300 + i * 110 });
+      const f = this.sembrar(sitio.pos, {
+        duracion: 1400,
+        retraso: 300 + i * 110,
+      });
       f.fijarEscala(sitio.alto / f.userData.altura);
       f.userData.tiltZ = sitio.tiltZ;
       f.userData.tiltX = sitio.tiltX;
@@ -792,7 +960,12 @@ export class Garden {
     if (this.ramo) {
       const ramo = this.ramo;
       anime({
-        targets: ramo.scale, x: 0.001, y: 0.001, z: 0.001, duration: 500, easing: 'easeInBack',
+        targets: ramo.scale,
+        x: 0.001,
+        y: 0.001,
+        z: 0.001,
+        duration: 500,
+        easing: "easeInBack",
         complete: () => this.scene.remove(ramo),
       });
       this.ramo = null;
@@ -802,16 +975,24 @@ export class Garden {
       if (!o) continue;
       const inicio = f.position.clone();
       const esc0 = f.escalaBase;
-      const control = inicio.clone().lerp(o.pos, 0.5).setY(inicio.y + 2);
+      const control = inicio
+        .clone()
+        .lerp(o.pos, 0.5)
+        .setY(inicio.y + 2);
       const prox = { t: 0 };
       anime({
-        targets: prox, t: 1, duration: 1300, delay: Math.random() * 300, easing: 'easeInOutCubic',
+        targets: prox,
+        t: 1,
+        duration: 1300,
+        delay: Math.random() * 300,
+        easing: "easeInOutCubic",
         update: () => {
-          const t = prox.t, u = 1 - t;
+          const t = prox.t,
+            u = 1 - t;
           f.position.set(
             u * u * inicio.x + 2 * u * t * control.x + t * t * o.pos.x,
             u * u * inicio.y + 2 * u * t * control.y + t * t * o.pos.y,
-            u * u * inicio.z + 2 * u * t * control.z + t * t * o.pos.z
+            u * u * inicio.z + 2 * u * t * control.z + t * t * o.pos.z,
           );
           f.userData.tiltZ = (f.userData.tiltZ || 0) * (1 - t);
           f.userData.tiltX = (f.userData.tiltX || 0) * (1 - t);
@@ -824,26 +1005,180 @@ export class Garden {
     await this.vistaJardin(2000);
   }
 
+  _initLuciernagas() {
+    const positions = new Float32Array(65 * 3);
+    const rnd = mulberry32(861);
+    for (let i = 0; i < 65; i++) {
+      positions[i * 3] = (rnd() - 0.5) * 16;
+      positions[i * 3 + 1] = 0.6 + rnd() * 2;
+      positions[i * 3 + 2] = (rnd() - 0.5) * 15;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.luciernagas = new THREE.Points(
+      geometry,
+      new THREE.PointsMaterial({
+        color: 0xffe49a,
+        size: 0.09,
+        map: discoTextura(),
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    this.scene.add(this.luciernagas);
+  }
+
+  aplicarEstilo(style) {
+    this.estilo = { ...this.estilo, ...style };
+    const night = this.estilo.ambiente === "noche";
+    this.cieloMat.uniforms.uArriba.value.set(night ? 0x111d3b : 0x429be0);
+    this.cieloMat.uniforms.uMedio.value.set(night ? 0x35466d : 0x86cef4);
+    this.cieloMat.uniforms.uAbajo.value.set(night ? 0x706d93 : 0xd8eff4);
+    this.scene.fog.color.set(night ? 0x354159 : 0xb8dce9);
+    this.hemi.color.set(night ? 0xb9b8e0 : 0xd4edff);
+    this.hemi.groundColor.set(night ? 0x525367 : 0x688b43);
+    this.hemi.intensity = night ? 0.75 : 1.0;
+    this.sol.color.set(night ? 0xb6c3ec : 0xfff1d1);
+    this.sol.intensity = night ? 1.3 : 1.9;
+    this.sol.position.set(-6, 9, 6);
+    this.relleno.intensity = night ? 0.5 : 0.35;
+    this.sunSprite.material.color.set(night ? 0xc0c5f3 : 0xffd9a1);
+    this.sunSprite.scale.setScalar(night ? 12 : 22);
+    this.renderer.toneMappingExposure = night ? 0.9 : 1.0;
+  }
+
+  eliminarRamo() {
+    for (const flower of this.floresRamo || []) {
+      this.scene.remove(flower);
+      flower.dispose();
+      const index = this.flores.indexOf(flower);
+      if (index >= 0) this.flores.splice(index, 1);
+    }
+    this.floresRamo = [];
+    if (this.ramo) {
+      const geometries = new Set(),
+        materials = new Set();
+      this.ramo.traverse((object) => {
+        if (object.geometry) geometries.add(object.geometry);
+        if (object.material) materials.add(object.material);
+      });
+      geometries.forEach((g) => g.dispose());
+      materials.forEach((m) => m.dispose());
+      this.scene.remove(this.ramo);
+      this.ramo = null;
+    }
+    this.bouquetActivo = false;
+  }
+
+  async presentarRamo(data, instant = false) {
+    this.eliminarRamo();
+    this.aplicarEstilo(data);
+    this.bouquetActivo = true;
+    this.autoRotar(false);
+    const base = new THREE.Vector3(0, 0.78, 0);
+    this.ramo = this._crearEnvoltura();
+    this.ramo.position.copy(base);
+    this.scene.add(this.ramo);
+    const rnd = mulberry32(Math.floor(data.semilla * 1e9));
+    for (let i = 0; i < data.flores; i++) {
+      const site = this._sitioEnRamo(i, data.flores, base);
+      const flower = this.sembrar(site.pos, {
+        duracion: instant ? 0 : 1300,
+        retraso: instant ? 0 : 150 + i * 45,
+        seed: rnd(),
+      });
+      flower.userData.regalo = true;
+      flower.fijarEscala(site.alto / flower.userData.altura);
+      flower.userData.tiltZ = site.tiltZ;
+      flower.userData.tiltX = site.tiltX;
+      flower.userData.recuerdo =
+        data.recuerdos?.[i % (data.recuerdos?.length || 1)] || "";
+    }
+    this.floresRamo = this.flores.slice(-data.flores);
+    await this.vistaRamo(instant ? 0 : 1400);
+    if (!instant) await pause(300 + data.flores * 45);
+    for (const flower of this.floresRamo) {
+      delete flower.userData.crecimiento;
+      flower.setGrowth(1);
+    }
+  }
+
+  recuerdoEnPunto(x, y) {
+    this.puntero.set(x * 2 - 1, -(y * 2 - 1));
+    this.raycaster.setFromCamera(this.puntero, this.camera);
+    const hit = this.raycaster.intersectObjects(this.floresRamo || [], true)[0];
+    if (!hit) return null;
+    let object = hit.object;
+    while (object && !object.userData.recuerdo) object = object.parent;
+    return object?.userData.recuerdo || null;
+  }
+
+  exportarJardin() {
+    return this.flores
+      .filter((f) => !f.userData.decorativa && !f.userData.regalo)
+      .slice(0, 100)
+      .map((f) => ({ x: f.position.x, z: f.position.z, seed: f.seed }));
+  }
+
+  restaurarJardin(flowers) {
+    for (const point of (Array.isArray(flowers) ? flowers : []).slice(0, 100)) {
+      if (
+        ![point.x, point.z, point.seed].every(Number.isFinite) ||
+        Math.abs(point.x) > 20 ||
+        Math.abs(point.z) > 20
+      )
+        continue;
+      this.sembrar(
+        new THREE.Vector3(point.x, alturaTerreno(point.x, point.z), point.z),
+        { duracion: 0, seed: point.seed },
+      );
+    }
+  }
+
+  borrarSiembras() {
+    for (const flower of [...this.flores]) {
+      if (flower.userData.decorativa || flower.userData.regalo) continue;
+      this.scene.remove(flower);
+      flower.dispose();
+      this.flores.splice(this.flores.indexOf(flower), 1);
+    }
+  }
+
   /* ============================ loop ============================ */
 
   resize() {
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = window.innerWidth,
+      h = window.innerHeight;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
+    if (this.bouquetActivo) this.vistaRamo(0);
   }
 
   render() {
-    const dt = Math.min(this.reloj.getDelta(), 0.05);
+    const elapsed = this.reloj.getDelta();
+    if (this.editorPausado) return;
+    const dt = reducedMotion.matches ? 0 : Math.min(elapsed, 0.05);
     this.tiempo += dt;
     const t = this.tiempo;
 
     this._pastoTime.value = t;
     this.polenMat.uniforms.uTime.value = t;
 
+    const now = performance.now();
     for (const f of this.flores) {
-      f.update(t, this.viento);
+      const growth = f.userData.crecimiento;
+      if (growth) {
+        const progress = reducedMotion.matches
+          ? 1
+          : Math.max(0, Math.min(1, (now - growth.inicio) / growth.duracion));
+        f.setGrowth(1 - Math.pow(1 - progress, 3));
+        if (progress === 1) delete f.userData.crecimiento;
+      }
+      f.update(t, reducedMotion.matches ? 0 : this.viento);
       if (f.userData.tiltZ) f.rotation.z += f.userData.tiltZ;
       if (f.userData.tiltX) f.rotation.x += f.userData.tiltX;
     }
@@ -853,7 +1188,14 @@ export class Garden {
       if (n.position.x > 110) n.position.x = -110;
     }
 
-    this.bichos.actualizar(t, dt, this.flores);
+    if (!reducedMotion.matches) this.bichos.actualizar(t, dt, this.flores);
+    this.luciernagas.visible = this.estilo.ambiente === "noche";
+    if (this.luciernagas.visible && !reducedMotion.matches) {
+      const positions = this.luciernagas.geometry.attributes.position;
+      for (let i = 0; i < positions.count; i++)
+        positions.setY(i, 1.4 + Math.sin(t * 0.3 + i * 1.7) * 0.7);
+      positions.needsUpdate = true;
+    }
 
     this.controls.update();
     this.composer.render();
@@ -870,14 +1212,21 @@ export class Garden {
 
 /* ============================ utilidades ============================ */
 
-function discoTextura(size = 128, rgb = 'rgba(255,245,200,') {
-  const c = document.createElement('canvas');
+function discoTextura(size = 128, rgb = "rgba(255,245,200,") {
+  const c = document.createElement("canvas");
   c.width = c.height = size;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, rgb + '1)');
-  g.addColorStop(0.25, rgb + '0.75)');
-  g.addColorStop(1, rgb + '0)');
+  const ctx = c.getContext("2d");
+  const g = ctx.createRadialGradient(
+    size / 2,
+    size / 2,
+    0,
+    size / 2,
+    size / 2,
+    size / 2,
+  );
+  g.addColorStop(0, rgb + "1)");
+  g.addColorStop(0.25, rgb + "0.75)");
+  g.addColorStop(1, rgb + "0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
   const tex = new THREE.CanvasTexture(c);
@@ -889,13 +1238,14 @@ function discoTextura(size = 128, rgb = 'rgba(255,245,200,') {
 function hojaCarta() {
   const f = new THREE.Shape();
   f.moveTo(0, 0);
-  f.bezierCurveTo(0.30, 0.22, 0.24, 0.78, 0, 1);
-  f.bezierCurveTo(-0.24, 0.78, -0.30, 0.22, 0, 0);
+  f.bezierCurveTo(0.3, 0.22, 0.24, 0.78, 0, 1);
+  f.bezierCurveTo(-0.24, 0.78, -0.3, 0.22, 0, 0);
   const g = new THREE.ShapeGeometry(f, 8);
   const pos = g.attributes.position;
   for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i);
-    pos.setZ(i, -0.35 * x * x + 0.12 * y * y);   // se dobla como hoja de verdad
+    const x = pos.getX(i),
+      y = pos.getY(i);
+    pos.setZ(i, -0.35 * x * x + 0.12 * y * y); // se dobla como hoja de verdad
   }
   pos.needsUpdate = true;
   g.computeVertexNormals();
@@ -915,17 +1265,22 @@ function follaje(radio, detalle, rnd, claro, oscuro, rugosidad = 0.2) {
   const c = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const n = Math.sin(x * 3.1 + 1.7) * Math.cos(z * 2.7) * Math.sin(y * 2.3 + 0.4);
+    const x = pos.getX(i),
+      y = pos.getY(i),
+      z = pos.getZ(i);
+    const n =
+      Math.sin(x * 3.1 + 1.7) * Math.cos(z * 2.7) * Math.sin(y * 2.3 + 0.4);
     const d = 1 + n * rugosidad + (rnd() - 0.5) * rugosidad * 0.5;
     pos.setXYZ(i, x * d, y * d, z * d);
 
     const t = Math.min(1, Math.max(0, (y / radio) * 0.5 + 0.5));
     c.copy(cB).lerp(cA, t * t * (0.85 + rnd() * 0.3));
-    cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+    cols[i * 3] = c.r;
+    cols[i * 3 + 1] = c.g;
+    cols[i * 3 + 2] = c.b;
   }
   pos.needsUpdate = true;
-  g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+  g.setAttribute("color", new THREE.BufferAttribute(cols, 3));
   g.computeVertexNormals();
   return g;
 }

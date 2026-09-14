@@ -8,12 +8,14 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && fc-cache -f
 
-WORKDIR /app
+WORKDIR /app/server
 
-COPY server/package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
 
 COPY server/*.js ./
+COPY shared/ /app/shared/
+COPY shared/ ./public/shared/
 COPY index.html ./public/index.html
 COPY css/ ./public/css/
 COPY js/  ./public/js/

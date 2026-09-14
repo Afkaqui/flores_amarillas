@@ -1,181 +1,197 @@
-import anime from 'animejs';
+import anime from "animejs";
+export const $ = (selector) => document.querySelector(selector);
+export const reducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+);
+export const duration = (ms) => (reducedMotion.matches ? 0 : ms);
+export const pause = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, duration(ms)));
 
-export const $ = (sel) => document.querySelector(sel);
-
-/*
- * anime.js congela sus animaciones cuando la pestaña se oculta y, al volver,
- * a veces no reanuda: la promesa `finished` no resuelve nunca y el flujo se
- * queda trabado. Toda espera de UI corre contra un reloj de respaldo.
- */
-function corre(instancia, msMax) {
-  return Promise.race([
-    instancia.finished,
-    new Promise((r) => setTimeout(r, msMax)),
-  ]);
-}
-
-/* ---------- helpers de visibilidad ---------- */
-export function mostrar(el, { y = 24, duracion = 700, delay = 0 } = {}) {
-  el.classList.remove('hidden');
-  const inst = anime({
-    targets: el,
-    opacity: [0, 1],
-    translateY: [y, 0],
-    duration: duracion,
-    delay,
-    easing: 'easeOutExpo',
-  });
-  return corre(inst, duracion + delay + 250).then(() => {
-    el.style.opacity = '1';
-    el.style.transform = '';
+function animate(options, settle) {
+  const ms = duration(options.duration || 0);
+  if (!ms) {
+    settle();
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      instance.pause();
+      settle();
+      resolve();
+    };
+    const instance = anime({ ...options, duration: ms, complete: finish });
+    const timer = setTimeout(finish, ms + (options.delay || 0) + 150);
   });
 }
-
-export function ocultar(el, { y = -18, duracion = 500 } = {}) {
-  const inst = anime({
-    targets: el,
-    opacity: 0,
-    translateY: y,
-    duration: duracion,
-    easing: 'easeInQuad',
-  });
-  return corre(inst, duracion + 250).then(() => {
-    el.classList.add('hidden');
-    el.style.opacity = '';
-    el.style.transform = '';
-  });
-}
-
-/* ---------- título letra por letra ---------- */
-export function partirTexto(el) {
-  const html = el.innerHTML;
-  el.innerHTML = html.replace(/([^<>]+)(?=<|$)/g, (txt) =>
-    txt.replace(/\S/g, "<span class='char'>$&</span>")
+export function mostrar(el, { y = 12, duracion = 500 } = {}) {
+  el.classList.remove("hidden");
+  return animate(
+    {
+      targets: el,
+      opacity: [0, 1],
+      translateY: [y, 0],
+      duration: duracion,
+      easing: "easeOutCubic",
+    },
+    () => {
+      el.style.opacity = "";
+      el.style.transform = "";
+    },
   );
-  return el.querySelectorAll('.char');
 }
-
-export function animarTitulo(el, delay = 0) {
-  const chars = partirTexto(el);
-  return anime({
-    targets: chars,
-    opacity: [0, 1],
-    translateY: [64, 0],
-    rotateZ: [() => anime.random(-22, 22), 0],
-    scale: [0.6, 1],
-    duration: 1200,
-    delay: anime.stagger(38, { start: delay }),
-    easing: 'easeOutElastic(1, .7)',
-  });
+export function ocultar(el, { duracion = 350 } = {}) {
+  return animate(
+    { targets: el, opacity: 0, duration: duracion, easing: "easeInOutQuad" },
+    () => {
+      el.classList.add("hidden");
+      el.style.opacity = "";
+      el.style.transform = "";
+    },
+  );
 }
-
-/* ---------- lluvia de pétalos ---------- */
-export function lluviaDePetalos(cantidad = 40, { duracionBase = 5200 } = {}) {
-  const capa = document.getElementById('petal-layer');
-  const W = window.innerWidth;
-
-  for (let i = 0; i < cantidad; i++) {
-    const p = document.createElement('div');
-    p.className = 'petal';
-    const s = 0.55 + Math.random() * 0.95;
-    p.style.left = Math.random() * W + 'px';
-    p.style.width = p.style.height = 16 * s + 'px';
-    p.style.opacity = 0.65 + Math.random() * 0.35;
+export function lluviaDePetalos(cantidad = 18) {
+  if (reducedMotion.matches || document.hidden) return;
+  const capa = $("#petal-layer");
+  const available = Math.max(0, 50 - capa.childElementCount);
+  for (let i = 0; i < Math.min(cantidad, available); i++) {
+    const p = document.createElement("div");
+    p.className = "petal";
+    p.style.left = Math.random() * 100 + "%";
+    p.style.width = 8 + Math.random() * 8 + "px";
+    p.style.height = 11 + Math.random() * 9 + "px";
     capa.appendChild(p);
-
-    const deriva = (Math.random() - 0.5) * 320;
-    anime({
+    const anim = anime({
       targets: p,
-      translateY: [-80, window.innerHeight + 120],
-      translateX: [
-        { value: deriva * 0.6, duration: duracionBase * 0.5, easing: 'easeInOutSine' },
-        { value: deriva, duration: duracionBase * 0.5, easing: 'easeInOutSine' },
-      ],
-      rotateZ: anime.random(-540, 540),
-      rotateX: anime.random(0, 360),
-      duration: duracionBase + Math.random() * 2600,
-      delay: Math.random() * 1800,
-      easing: 'linear',
+      translateY: [-40, innerHeight + 80],
+      translateX: (Math.random() - 0.5) * 220,
+      rotate: Math.random() * 380,
+      duration: 5000 + Math.random() * 2500,
+      delay: Math.random() * 900,
+      easing: "linear",
       complete: () => p.remove(),
     });
+    setTimeout(() => {
+      anim.pause();
+      p.remove();
+    }, 9000);
   }
 }
-
-/* ---------- toast ---------- */
 let toastTimer;
-export function toast(mensaje, ms = 2400) {
-  const el = document.getElementById('toast');
-  el.textContent = mensaje;
-  el.classList.add('show');
+export function toast(text, ms = 3200) {
+  const el = $("#toast");
+  el.textContent = text;
+  el.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+  toastTimer = setTimeout(() => el.classList.remove("show"), ms);
 }
-
-/* ---------- contador animado ---------- */
-export function animarContador(el, desde, hasta) {
-  const prox = { v: desde };
-  anime({
-    targets: prox,
-    v: hasta,
-    duration: 600,
-    round: 1,
-    easing: 'easeOutCubic',
-    update: () => { el.textContent = prox.v; },
-  });
-  anime({
-    targets: el,
-    scale: [1, 1.28, 1],
-    duration: 520,
-    easing: 'easeOutBack',
-  });
+export function animarContador(el, _from, to) {
+  el.textContent = to;
 }
-
-/* ---------- máquina de escribir ---------- */
-export function escribir(el, texto, { velocidad = 34, delay = 200 } = {}) {
-  el.textContent = '';
-  const caret = document.createElement('span');
-  caret.className = 'caret';
-  el.appendChild(caret);
-
-  return new Promise((resolve) => {
-    let i = 0;
-    setTimeout(function paso() {
-      if (i >= texto.length) {
-        setTimeout(() => { caret.remove(); resolve(); }, 700);
-        return;
-      }
-      caret.insertAdjacentText('beforebegin', texto[i++]);
-      setTimeout(paso, velocidad);
-    }, delay);
-  });
+let finishWriting = () => {};
+export function completarCarta() {
+  finishWriting();
 }
-
-/* ---------- modales ---------- */
+export function escribir(el, texto) {
+  finishWriting();
+  const chars = Array.from(texto);
+  let timer;
+  const start = performance.now();
+  const finish = () => {
+    clearTimeout(timer);
+    el.textContent = texto;
+    $("#btn-skip").classList.add("hidden");
+    finishWriting = () => {};
+  };
+  finishWriting = finish;
+  el.setAttribute("aria-label", texto);
+  if (reducedMotion.matches) {
+    finish();
+    return;
+  }
+  $("#btn-skip").classList.remove("hidden");
+  const tick = () => {
+    const count = Math.floor((performance.now() - start) / 19);
+    if (count >= chars.length || document.hidden) return finish();
+    el.textContent = chars.slice(0, count).join("");
+    timer = setTimeout(tick, 30);
+  };
+  tick();
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) finishWriting();
+});
+reducedMotion.addEventListener("change", (e) => {
+  if (e.matches) {
+    finishWriting();
+    $("#petal-layer").replaceChildren();
+  }
+});
+let activeModal = null,
+  previousFocus = null;
+const focusable = (el) =>
+  [
+    ...el.querySelectorAll(
+      'button:not(:disabled),input,textarea,select,a[href],summary,[tabindex="0"]',
+    ),
+  ].filter((e) => e.getClientRects().length && !e.closest(".hidden"));
 export function abrirModal(el) {
-  el.classList.remove('hidden');
-  const card = el.querySelector('.modal-card, .card');
-  anime({ targets: el, opacity: [0, 1], duration: 260, easing: 'easeOutQuad' });
-  const inst = anime({
-    targets: card,
-    opacity: [0, 1],
-    translateY: [40, 0],
-    scale: [0.92, 1],
-    duration: 700,
-    easing: 'easeOutElastic(1, .8)',
-  });
-  return corre(inst, 950).then(() => {
-    el.style.opacity = '1';
-    card.style.opacity = '1';
-  });
+  if (activeModal) cerrarModal(activeModal);
+  previousFocus = document.activeElement;
+  activeModal = el;
+  for (const sibling of document.body.children)
+    if (sibling !== el && sibling.id !== "toast") sibling.inert = true;
+  el.inert = false;
+  document.dispatchEvent(
+    new CustomEvent("flores:modal", { detail: { open: true } }),
+  );
+  el.classList.remove("hidden");
+  requestAnimationFrame(() => (focusable(el)[0] || el).focus());
+  // Keep the full-screen backdrop stable; animate only its paper panel.
+  return mostrar(el.querySelector(".modal-card"), { y: 10, duracion: 220 });
 }
-
 export function cerrarModal(el) {
-  const card = el.querySelector('.modal-card, .card');
-  anime({ targets: card, opacity: 0, translateY: 24, scale: 0.95, duration: 260, easing: 'easeInQuad' });
-  const inst = anime({ targets: el, opacity: 0, duration: 300, delay: 80, easing: 'easeInQuad' });
-  return corre(inst, 650).then(() => {
-    el.classList.add('hidden');
-    el.style.opacity = '';
-    if (card) { card.style.opacity = ''; card.style.transform = ''; }
-  });
+  el.classList.add("hidden");
+  el.style.opacity = "";
+  el.style.transform = "";
+  if (activeModal === el) {
+    activeModal = null;
+    document.dispatchEvent(
+      new CustomEvent("flores:modal", { detail: { open: false } }),
+    );
+    for (const sibling of document.body.children) sibling.inert = false;
+    if (previousFocus?.isConnected) previousFocus.focus();
+  }
+  return Promise.resolve();
 }
+window.addEventListener("keydown", (e) => {
+  if (!activeModal) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    cerrarModal(activeModal);
+  }
+  if (e.key === "Tab") {
+    const list = focusable(activeModal);
+    if (!list.length) return;
+    const first = list[0],
+      last = list.at(-1);
+    if (
+      e.shiftKey &&
+      (document.activeElement === first ||
+        !activeModal.contains(document.activeElement))
+    ) {
+      e.preventDefault();
+      last.focus();
+    } else if (
+      !e.shiftKey &&
+      (document.activeElement === last ||
+        !activeModal.contains(document.activeElement))
+    ) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});

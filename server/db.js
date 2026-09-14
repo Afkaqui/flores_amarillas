@@ -1,4 +1,5 @@
-import pg from 'pg';
+import pg from "pg";
+import { normalizeGift } from "../shared/gift.js";
 
 const { Pool } = pg;
 
@@ -23,23 +24,37 @@ export async function prepararEsquema() {
       ip_creador  inet
     );
   `);
-  await pool.query(`CREATE INDEX IF NOT EXISTS regalos_creado_idx ON regalos (creado DESC);`);
+  await pool.query(
+    `ALTER TABLE regalos ADD COLUMN IF NOT EXISTS detalles jsonb NOT NULL DEFAULT '{}'::jsonb;`,
+  );
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS regalos_creado_idx ON regalos (creado DESC);`,
+  );
 }
 
 export async function guardarRegalo(r) {
   await pool.query(
-    `INSERT INTO regalos (id, para, mensaje, de, flores, ip_creador)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [r.id, r.para, r.mensaje, r.de, r.flores, r.ip || null]
+    `INSERT INTO regalos (id, para, mensaje, de, flores, ip_creador, detalles)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
+    [
+      r.id,
+      r.para,
+      r.mensaje,
+      r.de,
+      r.flores,
+      r.ip || null,
+      JSON.stringify(normalizeGift(r)),
+    ],
   );
 }
 
 export async function leerRegalo(id) {
   const { rows } = await pool.query(
-    `SELECT id, para, mensaje, de, flores, creado, aperturas FROM regalos WHERE id = $1`,
-    [id]
+    `SELECT id, para, mensaje, de, flores, creado, aperturas, detalles FROM regalos WHERE id = $1`,
+    [id],
   );
-  return rows[0] || null;
+  const row = rows[0];
+  return row ? { ...row, ...normalizeGift({ ...row, ...row.detalles }) } : null;
 }
 
 /**
@@ -53,7 +68,7 @@ export async function marcarApertura(id) {
         SET aperturas = aperturas + 1,
             abierto = COALESCE(abierto, now())
       WHERE id = $1`,
-    [id]
+    [id],
   );
 }
 
@@ -63,7 +78,7 @@ export async function regalosRecientes(ip) {
   const { rows } = await pool.query(
     `SELECT count(*)::int AS n FROM regalos
       WHERE ip_creador = $1 AND creado > now() - interval '1 hour'`,
-    [ip]
+    [ip],
   );
   return rows[0]?.n ?? 0;
 }

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /* ============================================================
    Geometría procedural de una flor amarilla.
@@ -16,9 +16,9 @@ const smoothstep = (a, b, x) => {
 function buildPetalGeometry() {
   const s = new THREE.Shape();
   s.moveTo(0, 0);
-  s.bezierCurveTo(0.30, 0.16, 0.36, 0.70, 0.11, 1.02);
+  s.bezierCurveTo(0.3, 0.16, 0.36, 0.7, 0.11, 1.02);
   s.bezierCurveTo(0.06, 1.09, -0.06, 1.09, -0.11, 1.02);
-  s.bezierCurveTo(-0.36, 0.70, -0.30, 0.16, 0, 0);
+  s.bezierCurveTo(-0.36, 0.7, -0.3, 0.16, 0, 0);
 
   const g = new THREE.ShapeGeometry(s, 16);
   const pos = g.attributes.position;
@@ -26,7 +26,7 @@ function buildPetalGeometry() {
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const y = pos.getY(i);
-    pos.setZ(i, 0.20 * y * y * y + 0.45 * x * x);
+    pos.setZ(i, 0.2 * y * y * y + 0.45 * x * x);
   }
   pos.needsUpdate = true;
   g.computeVertexNormals();
@@ -37,13 +37,13 @@ function buildPetalGeometry() {
 function buildLeafGeometry() {
   const s = new THREE.Shape();
   s.moveTo(0, 0);
-  s.bezierCurveTo(0.42, 0.20, 0.38, 0.74, 0, 1.05);
-  s.bezierCurveTo(-0.38, 0.74, -0.42, 0.20, 0, 0);
+  s.bezierCurveTo(0.42, 0.2, 0.38, 0.74, 0, 1.05);
+  s.bezierCurveTo(-0.38, 0.74, -0.42, 0.2, 0, 0);
   const g = new THREE.ShapeGeometry(s, 12);
   const pos = g.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
-    pos.setZ(i, -0.30 * x * x);
+    pos.setZ(i, -0.3 * x * x);
   }
   pos.needsUpdate = true;
   g.computeVertexNormals();
@@ -56,16 +56,26 @@ const CORE_GEO = new THREE.SphereGeometry(0.5, 20, 14);
 const CROWN_GEO = new THREE.SphereGeometry(0.5, 16, 12);
 
 const LEAF_MAT = new THREE.MeshStandardMaterial({
-  color: 0x4c8f3a, roughness: 0.75, metalness: 0, side: THREE.DoubleSide,
+  color: 0x4c8f3a,
+  roughness: 0.75,
+  metalness: 0,
+  side: THREE.DoubleSide,
 });
 const STEM_MAT = new THREE.MeshStandardMaterial({
-  color: 0x4a8c37, roughness: 0.85, metalness: 0,
+  color: 0x4a8c37,
+  roughness: 0.85,
+  metalness: 0,
 });
 const CORE_MAT = new THREE.MeshStandardMaterial({
-  color: 0x8a5a16, roughness: 0.95, metalness: 0,
+  color: 0x8a5a16,
+  roughness: 0.95,
+  metalness: 0,
 });
 const CROWN_MAT = new THREE.MeshStandardMaterial({
-  color: 0xe8a51c, roughness: 0.55, emissive: 0x5a3c00, emissiveIntensity: 0.5,
+  color: 0xe8a51c,
+  roughness: 0.55,
+  emissive: 0x5a3c00,
+  emissiveIntensity: 0.5,
 });
 
 // Variantes de amarillo: del sol pálido al ámbar encendido.
@@ -82,7 +92,7 @@ export class Flower extends THREE.Group {
     this.seed = seed;
     this.phase = rnd() * TWO_PI;
     this.growth = 0;
-    this.escalaBase = 1;   // se achica/agranda al entrar en un ramo
+    this.escalaBase = 1; // se achica/agranda al entrar en un ramo
 
     const altura = 1.15 + rnd() * 0.9;
     const escala = 0.85 + rnd() * 0.35;
@@ -98,7 +108,7 @@ export class Flower extends THREE.Group {
     ]);
     const stem = new THREE.Mesh(
       new THREE.TubeGeometry(curva, 14, 0.028 * escala, 6, false),
-      STEM_MAT
+      STEM_MAT,
     );
     stem.castShadow = true;
     this.add(stem);
@@ -143,8 +153,20 @@ export class Flower extends THREE.Group {
 
     this.petalPivots = [];
     const anillos = [
-      { n: 10 + Math.floor(rnd() * 3), r: 0.075, esc: 0.44 * escala, tiltOpen: 0.02, off: 0 },
-      { n: 8 + Math.floor(rnd() * 3), r: 0.04, esc: 0.33 * escala, tiltOpen: 0.4, off: 0.4 },
+      {
+        n: 10 + Math.floor(rnd() * 3),
+        r: 0.075,
+        esc: 0.44 * escala,
+        tiltOpen: 0.02,
+        off: 0,
+      },
+      {
+        n: 8 + Math.floor(rnd() * 3),
+        r: 0.04,
+        esc: 0.33 * escala,
+        tiltOpen: 0.4,
+        off: 0.4,
+      },
     ];
     for (const a of anillos) {
       for (let i = 0; i < a.n; i++) {
@@ -157,7 +179,10 @@ export class Flower extends THREE.Group {
         m.castShadow = true;
         pivot.add(m);
         head.add(pivot);
-        this.petalPivots.push({ mesh: m, tiltOpen: a.tiltOpen + (rnd() - 0.5) * 0.14 });
+        this.petalPivots.push({
+          mesh: m,
+          tiltOpen: a.tiltOpen + (rnd() - 0.5) * 0.14,
+        });
       }
     }
 
@@ -187,13 +212,16 @@ export class Flower extends THREE.Group {
 
     const cabeza = smoothstep(0.3, 0.95, g);
     this.head.visible = cabeza > 0.01;
-    const base = this.head.userData.baseScale ?? (this.head.userData.baseScale = this.head.scale.x);
+    const base =
+      this.head.userData.baseScale ??
+      (this.head.userData.baseScale = this.head.scale.x);
     this.head.scale.setScalar(Math.max(0.001, base * cabeza));
 
     // los pétalos se abren al final: de capullo cerrado a corola abierta
     const apertura = smoothstep(0.55, 1, g);
     for (const p of this.petalPivots) {
-      p.mesh.rotation.x = -Math.PI / 2 + THREE.MathUtils.lerp(1.45, p.tiltOpen, apertura);
+      p.mesh.rotation.x =
+        -Math.PI / 2 + THREE.MathUtils.lerp(1.45, p.tiltOpen, apertura);
     }
     this.visible = g > 0.002;
   }
@@ -207,7 +235,6 @@ export class Flower extends THREE.Group {
   /** Vaivén de viento */
   update(time, viento = 1) {
     const s = this.growth;
-    if (s <= 0.01) return;
     const w = viento * s;
     this.rotation.z = Math.sin(time * 1.15 + this.phase) * 0.055 * w;
     this.rotation.x = Math.cos(time * 0.85 + this.phase * 1.3) * 0.035 * w;
@@ -222,7 +249,8 @@ export class Flower extends THREE.Group {
 /* PRNG determinista */
 export function mulberry32(a) {
   return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
