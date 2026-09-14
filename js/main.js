@@ -10,6 +10,8 @@ import {
   leerRegalo,
   copiar,
   registrarApertura,
+  mensajeParaCompartir,
+  enlaceWhatsApp,
 } from "./share.js";
 import { Musica } from "./audio.js";
 import {
@@ -58,6 +60,7 @@ let role = received ? "invitado" : "autor",
   busy = false,
   link = "",
   linkGeneration = 0;
+let linkState = "idle";
 let opened = false,
   musicWanted = true,
   musicReady = null,
@@ -521,18 +524,28 @@ $("#gift-form").addEventListener("submit", async (e) => {
   fillForm(data);
   writeStorage(DRAFT, data);
   link = enlaceConHash(data);
-  if (link.length > 12000 || data.fotos.length || data.voz) link = "";
+  if (
+    link.length > 12000 || data.fotos.length || data.voz || data.permitirRespuesta
+  ) link = "";
+  linkState = "saving";
   const generation = ++linkGeneration;
   crearEnlace(data)
     .then((url) => {
-      if (generation === linkGeneration) link = url;
+      if (generation === linkGeneration) {
+        link = url;
+        linkState = "ready";
+        updateShare();
+      }
     })
     .catch(() => {
-      if (generation === linkGeneration)
+      if (generation === linkGeneration) {
+        linkState = "error";
+        updateShare();
         toast(
           "No se pudo guardar el enlace. Tu regalo sigue aquí; vuelve a intentarlo desde Editar.",
           6000,
         );
+      }
     });
   await presentGift(data);
 });
@@ -596,22 +609,46 @@ async function copyLink() {
     track("gift_shared");
     toast("Enlace copiado. Ya puedes hacerle llegar su jardín. 💛");
   } else {
-    $("#gift-link").value = link;
-    abrirModal($("#link-modal"));
+    openShare();
     $("#gift-link").focus();
     $("#gift-link").select();
   }
 }
 $("#btn-copy").addEventListener("click", copyLink);
 $("#link-close").addEventListener("click", () => cerrarModal($("#link-modal")));
-$("#btn-share").addEventListener("click", async () => {
-  if (role === "invitado") return downloadPostcard();
-  if (!link) return copyLink();
+function updateShare() {
+  $("#gift-link").value = link;
+  const ready = !!link && linkState !== "saving";
+  const whatsapp = $("#share-whatsapp");
+  whatsapp.setAttribute("aria-disabled", String(!ready));
+  if (ready) whatsapp.href = enlaceWhatsApp($("#share-message").value, link);
+  else whatsapp.removeAttribute("href");
+  $("#share-copy").disabled = !ready;
+  $("#share-native").disabled = !ready;
+  $("#share-status").textContent = linkState === "saving"
+    ? "Preparando el enlace de tu regalo…"
+    : !link ? "No pudimos guardar el enlace. Tu carta sigue aquí: vuelve a Editar para intentarlo de nuevo."
+    : "El enlace se añade al mensaje. En WhatsApp eliges a quién enviarlo.";
+}
+function openShare() {
+  $("#share-message").value = mensajeParaCompartir(current);
+  $("#share-native").classList.toggle("hidden", !navigator.share);
+  updateShare();
+  abrirModal($("#link-modal"));
+}
+$("#share-message").addEventListener("input", updateShare);
+$("#share-copy").addEventListener("click", copyLink);
+$("#share-whatsapp").addEventListener("click", (event) => {
+  if (!link || linkState === "saving") event.preventDefault();
+  else track("whatsapp_opened"); // Intent to share, not confirmation of delivery.
+});
+$("#share-native").addEventListener("click", async () => {
+  if (!link || linkState === "saving") return;
   if (navigator.share) {
     try {
       await navigator.share({
         title: "Unas flores para " + current.para,
-        text: "Hay un pequeño jardín esperando por ti. 💛",
+        text: $("#share-message").value.trim(),
         url: link,
       });
       track("gift_shared");
@@ -621,6 +658,10 @@ $("#btn-share").addEventListener("click", async () => {
     }
   }
   await copyLink();
+});
+$("#btn-share").addEventListener("click", () => {
+  if (role === "invitado") return downloadPostcard();
+  openShare();
 });
 $("#btn-open").addEventListener("click", async () => {
   if (busy || !received) return;
@@ -640,7 +681,7 @@ $("#btn-open").addEventListener("click", async () => {
 });
 
 async function start() {
-  garden.sembrarCampo(innerWidth < 820 ? 38 : 58);
+  garden.sembrarCampo();
   garden.restaurarJardin(readStorage(STORE));
   garden.iniciar();
   if (received) {

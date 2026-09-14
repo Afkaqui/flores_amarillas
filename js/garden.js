@@ -4,6 +4,8 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { renderQuality, FrameBudget } from "./render-quality.js";
 import anime from "animejs";
 import { Flower, mulberry32 } from "./flower.js";
 import { Bichos } from "./bichos.js";
@@ -21,14 +23,22 @@ export function alturaTerreno(x, z) {
 }
 
 export class Garden {
-  constructor(canvas) {
+  constructor(canvas, { quality } = {}) {
     this.canvas = canvas;
     this.flores = [];
     this.reloj = new THREE.Clock();
     this.tiempo = 0;
     this.viento = 0.55;
-    this.calidadBaja =
-      innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4;
+    this.quality = quality || renderQuality({
+      width: innerWidth,
+      coarse: matchMedia("(pointer: coarse)").matches,
+      memory: navigator.deviceMemory || 8,
+      cores: navigator.hardwareConcurrency || 8,
+      saveData: navigator.connection?.saveData,
+    });
+    this.calidadBaja = this.quality.light;
+    this.frameBudget = new FrameBudget();
+    this.pixelBudget = this.quality.pixelRatio;
     this.bouquetActivo = false;
     this.estilo ||= {
       cinta: "rosa",
@@ -63,13 +73,13 @@ export class Garden {
   _initRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
-      powerPreference: "default",
+      antialias: !this.calidadBaja,
+      powerPreference: this.calidadBaja ? "low-power" : "default",
     });
     this.renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, this.calidadBaja ? 1.25 : 1.75),
+      Math.min(window.devicePixelRatio, this.pixelBudget),
     );
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !this.calidadBaja;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.98;
@@ -176,7 +186,9 @@ export class Garden {
   }
 
   _initSuelo() {
-    const geo = new THREE.PlaneGeometry(160, 160, 160, 160);
+    const geo = new THREE.PlaneGeometry(
+      160, 160, this.quality.terrain, this.quality.terrain,
+    );
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -198,7 +210,7 @@ export class Garden {
 
   _initPasto() {
     const movil = window.innerWidth < 820;
-    const N = this.calidadBaja ? 5000 : 14000;
+    const N = this.quality.grass;
 
     const hoja = new THREE.PlaneGeometry(0.055, 1, 1, 4);
     hoja.translate(0, 0.5, 0);
@@ -310,7 +322,7 @@ export class Garden {
     const escHoja = new THREE.Vector3();
     const colHoja = new THREE.Color();
 
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < this.quality.shrubs; i++) {
       const a = rnd() * TWO_PI;
       const rr = 13 + rnd() * 19;
       const g = new THREE.Group();
@@ -431,7 +443,7 @@ export class Garden {
       emissive: 0x8899aa,
       emissiveIntensity: 0.18,
     });
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < this.quality.clouds; i++) {
       const g = new THREE.Group();
       const n = 3 + Math.floor(rnd() * 3);
       for (let j = 0; j < n; j++) {
@@ -516,6 +528,8 @@ export class Garden {
   }
 
   _initPost() {
+    // Mobile renders directly: no full-resolution HDR targets or bloom passes.
+    if (this.calidadBaja) return;
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.95);
@@ -554,7 +568,8 @@ export class Garden {
   }
 
   /** Flores decorativas ya abiertas (fondo del intro). No cuentan como sembradas. */
-  sembrarCampo(n = 60) {
+  sembrarCampo(n = this.quality.field) {
+    const batches = new Map();
     const rnd = mulberry32(99);
     for (let i = 0; i < n; i++) {
       const cluster = i % 8,
@@ -571,9 +586,28 @@ export class Garden {
       };
       flower.fijarEscala(0.6 + rnd() * 0.35);
       flower.setGrowth(1);
-      this.scene.add(flower);
+      // Background flowers stay still; combine their petals/leaves by material.
+      // The personal bouquet retains its individual growth and wind animation.
+      flower.updateMatrixWorld(true);
+      flower.traverse((mesh) => {
+        if (!mesh.isMesh) return;
+        const key = mesh.material.uuid;
+        if (!batches.has(key))
+          batches.set(key, { material: mesh.material, geometries: [] });
+        batches.get(key).geometries.push(
+          mesh.geometry.clone().applyMatrix4(mesh.matrixWorld),
+        );
+      });
       this.flores.push(flower);
     }
+    this.campo = new THREE.Group();
+    for (const { material, geometries } of batches.values()) {
+      const mesh = new THREE.Mesh(mergeGeometries(geometries), material);
+      geometries.forEach((geometry) => geometry.dispose());
+      mesh.castShadow = true;
+      this.campo.add(mesh);
+    }
+    this.scene.add(this.campo);
   }
 
   sembrarAlAzar(n = 1, opts = {}) {
@@ -594,6 +628,11 @@ export class Garden {
   }
 
   limpiar() {
+    if (this.campo) {
+      this.campo.traverse((mesh) => mesh.geometry?.dispose());
+      this.scene.remove(this.campo);
+      this.campo = null;
+    }
     for (const f of this.flores) {
       const prox = { t: f.growth };
       anime({
@@ -1167,13 +1206,13 @@ export class Garden {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
-    this.composer.setSize(w, h);
+    this.composer?.setSize(w, h);
     if (this.bouquetActivo) this.vistaRamo(0);
   }
 
   render() {
     const elapsed = this.reloj.getDelta();
-    if (this.editorPausado) return;
+    if (this.editorPausado || document.hidden) return;
     const dt = reducedMotion.matches ? 0 : Math.min(elapsed, 0.05);
     this.tiempo += dt;
     const t = this.tiempo;
@@ -1183,6 +1222,7 @@ export class Garden {
 
     const now = performance.now();
     for (const f of this.flores) {
+      if (f.userData.decorativa) continue;
       const growth = f.userData.crecimiento;
       if (growth) {
         const progress = reducedMotion.matches
@@ -1211,15 +1251,44 @@ export class Garden {
     }
 
     this.controls.update();
-    this.composer.render();
+    if (this.composer) this.composer.render();
+    else this.renderer.render(this.scene, this.camera);
+  }
+
+  reducirCarga() {
+    this.quality.fps = 30;
+    this.renderer.shadowMap.enabled = false;
+    if (this.composer) {
+      this.composer.passes.forEach((pass) => pass.dispose?.());
+      this.composer.dispose();
+      this.composer = null;
+    }
+    this.pixelBudget = Math.max(0.65, this.pixelBudget * 0.8);
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, this.pixelBudget));
+    this.resize();
   }
 
   iniciar() {
-    const bucle = () => {
+    let last = 0;
+    const bucle = (now) => {
       this._raf = requestAnimationFrame(bucle);
+      if (document.hidden || this.editorPausado) {
+        last = 0;
+        this.frameBudget.reset();
+        this.reloj.getDelta();
+        return;
+      }
+      const elapsed = now - last;
+      if (last && elapsed < 1000 / this.quality.fps - 1) return;
+      if (
+        last && this.pixelBudget > 0.65 &&
+        this.frameBudget.sample(elapsed, this.quality.fps)
+      )
+        this.reducirCarga();
+      last = now;
       this.render();
     };
-    bucle();
+    this._raf = requestAnimationFrame(bucle);
   }
 }
 

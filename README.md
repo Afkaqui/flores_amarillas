@@ -15,7 +15,7 @@ Un jardín 3D para sembrar flores, escribir una carta y compartir un regalo sin 
 - Cinta rosa, miel o lavanda; papel marfil, rosa o kraft; entre 3 y 24 flores.
 - Tarde de sol o noche con luciérnagas. Ocasión personalizable.
 - Carta de hasta 360 caracteres y tres pequeñas razones de hasta 60 caracteres, descubribles desde las flores y los botones de la carta.
-- Compartir nativo cuando está disponible, copiar enlace y respaldo manual.
+- Compartir opcional por WhatsApp con mensaje editable y enlace listo, compartir nativo cuando está disponible, copiar enlace y respaldo manual. WhatsApp elige la apertura en app/web; la persona selecciona el contacto y confirma el envío. No se accede a sus contactos ni se envían mensajes automáticamente.
 - Postal PNG de 1200 px de ancho y altura adaptable, con el estilo de la carta: fondo marfil, texto a la izquierda, firma manuscrita y dibujos en notas con cinta. Incluye razones, fotos completas con sus frases y el enlace para escuchar la voz. No es una captura de la escena 3D.
 - Releer, plegar la carta, editar y repetir la sorpresa. El destinatario puede crear un regalo nuevo.
 - Jardín y borrador guardados en este dispositivo; máximo 100 flores sembradas.
@@ -75,7 +75,7 @@ El ajuste de movimiento reducido evita vuelos de cámara, caída de pétalos y e
 ## Pruebas
 
 ```sh
-node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs
+node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs tests/render-quality.test.mjs tests/sharing.test.mjs
 node server/seguro.test.mjs
 # Usar exclusivamente una base de pruebas:
 DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --env-file=.env --test tests/database.test.mjs tests/api.test.mjs tests/metrics.test.mjs tests/metrics-security.test.mjs
@@ -116,3 +116,11 @@ El asistente muestra una espera animada y tres tarjetas con entrada escalonada. 
 El backend registra actividad y volumen en PostgreSQL: visitas, pasos del creador, regalos, aperturas, respuestas, postales, asistente, subidas, peticiones, errores y tiempos. No utiliza un servicio externo ni incorpora textos, nombres o archivos en las métricas.
 
 La web abre las flores directamente en `/`. Sólo `/metrics` pide `METRICS_ADMIN_KEY`, generada en tu `.env` local: no hay acceso anónimo a datos ni exportaciones. En la vista previa, usa `http://127.0.0.1:5183/metrics`. El generador prepara la clave sin mostrarla y no sustituye la existente. Sin una clave configurada se bloquea únicamente `/metrics`; el jardín sigue funcionando. Incluye periodos, cierre de sesión y descarga JSON. Consulta [la guía de métricas](docs/METRICAS.md) para definiciones, límites y consulta por CLI.
+
+## Rendimiento móvil y compartir (septiembre de 2026)
+
+El perfil ligero se activa por pantalla pequeña, puntero táctil, memoria de hasta 4 GB, hasta cuatro hilos o ahorro de datos. Usa 1.800 hojas de pasto, terreno simplificado, 24 flores de fondo y 30 FPS como máximo, sin sombras dinámicas ni bloom. El ramo conserva sus flores y animación. Las flores del fondo se combinan por material y permanecen quietas. Tras 90 muestras lentas se reduce la resolución progresivamente hasta 0,65; las pausas del editor y las pestañas ocultas no cuentan como lentitud. No se cambia la calidad hacia arriba y abajo continuamente.
+
+Revisión local con BrowserOS, escena inicial de 16 flores y viewport móvil de 390 × 844 (no un teléfono físico): 2.079 → 512 llamadas de dibujo y 254.316 → 101.210 triángulos por fotograma, comparando con 5fa6e90. En escritorio: 3.784 → 1.126 llamadas. Son presupuestos gráficos medidos, no una garantía de FPS ni de rendimiento en todos los OPPO. El equipo reportado es un OPPO A58 con Chrome; pendiente prueba física en ese teléfono. Las [especificaciones del A58 CPH2577](https://www.oppo.com/en/smartphones/series-a/a58/specs/) indican Helio G85, GPU Mali-G52 MC2 y pantalla 2400 × 1080; el perfil ligero no depende de que sus ocho núcleos aparenten potencia de escritorio.
+
+La opción de WhatsApp usa el [enlace universal documentado](https://faq.whatsapp.com/425247423114725/), sin un SDK adicional. El mensaje no incluye el cuerpo de la carta. Los regalos con respuestas o archivos esperan a tener un enlace persistido antes de compartir. El contador privado `whatsapp_opened` mide clics, nunca entregas ni lecturas de WhatsApp.

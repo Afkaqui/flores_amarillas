@@ -106,6 +106,7 @@ async function refresh() {
       ["assistant_applied", "Aplicaron una idea"],
       ["gift_created", "Guardaron un regalo"],
       ["gift_shared", "Compartieron o copiaron"],
+      ["whatsapp_opened", "Eligieron compartir por WhatsApp"],
       ["gift_opened", "Abrieron un sobre"],
       ["reply_created", "Dejaron una respuesta"],
     ];

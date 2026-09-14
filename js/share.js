@@ -1,4 +1,14 @@
 import { normalizeGift } from "../shared/gift.js";
+export function mensajeParaCompartir(gift) {
+  const name = normalizeGift(gift).para;
+  return `${name ? name + ", te" : "Te"} preparé unas flores 🌼\nHay unas palabras esperando por ti. Abre tu regalo cuando tengas un ratito 💛`;
+}
+export function enlaceWhatsApp(message, link) {
+  const url = new URL(link);
+  if (!["https:", "http:"].includes(url.protocol)) throw new Error("Enlace inválido");
+  // Universal links let WhatsApp handle mobile/app/web without guessing the OS.
+  return "https://wa.me/?text=" + encodeURIComponent(`${message.trim()}\n\n${url.href}`);
+}
 function encode(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   return btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))

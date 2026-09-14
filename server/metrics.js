@@ -11,6 +11,7 @@ export const CLIENT_EVENTS = new Set([
   "assistant_applied",
   "gift_opened",
   "gift_shared",
+  "whatsapp_opened",
   "postcard_saved",
   "postcard_error",
 ]);
@@ -430,6 +431,7 @@ export async function metricsReport(days = 7) {
       "Las visitas y aperturas son eventos del navegador; las peticiones HTTP incluyen bots y vistas previas.",
       "Navegadores/día es una estimación por cookie de 24 horas, no personas. Los identificadores se conservan 30 días; los totales, 365.",
       "Compartir confirma copiar o cerrar el diálogo de compartir; no acredita entrega. Guardar postal confirma generar la descarga, no guardarla en disco.",
+      "WhatsApp cuenta clics para abrir la aplicación o web; no permite saber si el mensaje se envió o se leyó.",
       "Los pasos muestran actividad, no una cohorte lineal: se puede entrar al asistente desde el inicio. No sumes aperturas y creaciones como una conversión del mismo grupo.",
     ],
   };

@@ -73,6 +73,7 @@ test(
       const first = await post({ event: "page_view", source: "direct" });
       assert.equal(first.status, 204);
       const cookie = first.headers.get("set-cookie").split(";")[0];
+      assert.equal((await post({ event: "whatsapp_opened" }, cookie)).status, 204);
       assert.equal(
         (await post({ event: "page_view", source: "direct" }, cookie)).status,
         204,

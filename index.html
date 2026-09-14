@@ -60,10 +60,12 @@
       }
     </style>
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/controls.css" />
+    <link rel="stylesheet" href="/css/controls.css?v=20260914-share-mobile" />
     <script type="importmap">
       {
         "imports": {
+          "/js/garden.js": "/js/garden.js?v=20260914-share-mobile",
+          "/js/share.js": "/js/share.js?v=20260914-share-mobile",
           "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
           "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
           "animejs": "https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.es.js"
@@ -1129,16 +1131,26 @@
         <button class="modal-close" id="link-close" aria-label="Cerrar">
           ×
         </button>
-        <h2 class="modal-title" id="link-title">Tu regalo ya está listo</h2>
-        <p>Copia este enlace y hazle llegar su jardín.</p>
+        <span class="share-flower" aria-hidden="true">✿</span>
+        <h2 class="modal-title" id="link-title">Hazle llegar su jardín</h2>
+        <p>Un mensaje pequeño para una sorpresa bonita.</p>
+        <label class="field share-note"><span>Tu mensaje · puedes cambiarlo</span>
+          <textarea id="share-message" rows="4" maxlength="500"></textarea>
+        </label>
         <label class="field"
           ><span>Enlace del regalo</span
           ><input id="gift-link" readonly type="text"
         /></label>
+        <p id="share-status" class="share-status" role="status"></p>
+        <div class="share-options">
+          <a class="btn btn-primary" id="share-whatsapp" target="_blank" rel="noopener noreferrer">Abrir WhatsApp ↗</a>
+          <button type="button" class="btn btn-secondary" id="share-copy">Copiar enlace</button>
+          <button type="button" class="text-button" id="share-native">Más opciones para compartir ↗</button>
+        </div>
       </div>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="yt" aria-hidden="true"></div>
-    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/main.js?v=20260914-share-mobile"></script>
   </body>
 </html>

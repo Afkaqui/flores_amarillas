@@ -1,4 +1,12 @@
 /* Shared control sizes and dialog layout. Loaded after decorative styles. */
+.share-flower { display: block; color: #b99650; font-size: 36px; margin-bottom: 12px; }
+.share-note { margin-top: 24px; }
+.share-note textarea { background: #f5f7ef; min-height: 132px; line-height: 1.65; }
+.share-status { font-size: 13px; line-height: 1.6; color: #737d68; min-height: 42px; }
+.share-options { display: grid; gap: 12px; margin-top: 20px; }
+.share-options .btn { justify-content: center; text-decoration: none; }
+.share-options .btn-secondary { background: #f1eddd; border: 1px solid #e3dccb; color: #365344; }
+.share-options [aria-disabled="true"] { opacity: .5; cursor: wait; }
 :root {
   --control-height: 48px;
   --control-radius: 12px;
