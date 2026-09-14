@@ -4,3 +4,13 @@ deploy/*.md
 README.md
 Dockerfile
 docker-compose.yml
+
+.git
+.codegraph
+.serena
+node_modules
+server/node_modules
+server/media
+preview-output
+tests
+docs

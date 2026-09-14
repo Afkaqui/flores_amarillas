@@ -13,6 +13,13 @@ import {
   regalosRecientes,
 } from "./db.js";
 import { pngDelRegalo, pngDePortada } from "./og.js";
+import {
+  registerFeatures,
+  prepareFeatures,
+  claimMedia,
+  attachManagement,
+  sessionHash,
+} from "./features.js";
 import { escaparHtml, jsonEnLinea } from "./seguro.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -26,7 +33,8 @@ app.disable("x-powered-by");
 // Sólo nginx_proxy nos alcanza (el puerto se publica en la pasarela de Docker),
 // así que su X-Forwarded-For sí es de fiar.
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "8kb" }));
+registerFeatures(app);
+app.use(express.json({ limit: "256kb" }));
 
 /* ============================================================
    Utilidades
@@ -59,6 +67,14 @@ app.post("/api/regalos", async (req, res) => {
 
   const ip = ipDe(req);
   try {
+    if (gift.permitirRespuesta && !(await sessionHash(req)))
+      return res
+        .status(401)
+        .json({
+          error:
+            "Abre el creador de nuevo para guardar un regalo con respuestas.",
+        });
+    await claimMedia(req, gift);
     if ((await regalosRecientes(ip)) >= TOPE_POR_HORA) {
       return res
         .status(429)
@@ -70,7 +86,12 @@ app.post("/api/regalos", async (req, res) => {
       const id = nuevoId();
       try {
         await guardarRegalo({ ...gift, id, ip });
-        return res.status(201).json({ id, url: `${ORIGEN}/r/${id}` });
+        const manageToken = randomBytes(24).toString("hex");
+        await attachManagement(id, manageToken, req);
+        await claimMedia(req, gift, id);
+        return res
+          .status(201)
+          .json({ id, manageToken, url: `${ORIGEN}/r/${id}` });
       } catch (err) {
         if (err.code !== "23505") throw err; // 23505 = clave duplicada
       }
@@ -188,7 +209,7 @@ app.get("/r/:id", async (req, res) => {
       `<title>${escaparHtml(titulo)} · Flores Amarillas</title>`,
     );
 
-  res.set("Cache-Control", "public, max-age=300");
+  res.set("Cache-Control", "no-store");
   res.send(salida);
 });
 
@@ -218,6 +239,17 @@ app.use(
  * equivocado y la página sale sin estilos y sin escena: un fallo callado y
  * difícil de ver. Mejor un 404 ruidoso.
  */
+app.use((error, req, res, next) => {
+  if (error?.type === "entity.too.large")
+    return res
+      .status(413)
+      .json({ error: "El archivo o dibujo es demasiado grande." });
+  if (error instanceof SyntaxError)
+    return res.status(400).json({ error: "No pudimos leer esos datos." });
+  if (error)
+    return res.status(500).json({ error: "No pudimos completar la petición." });
+  next();
+});
 app.use((req, res) => {
   if (/\.[a-z0-9]{2,5}$/i.test(req.path))
     return res.status(404).type("text").send("no existe\n");
@@ -229,6 +261,7 @@ app.use((req, res) => {
    ============================================================ */
 try {
   await prepararEsquema();
+  await prepareFeatures();
   console.log("[flores] esquema listo");
 } catch (err) {
   console.error("[flores] no se pudo preparar la base:", err.message);

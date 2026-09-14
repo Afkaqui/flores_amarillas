@@ -23,6 +23,11 @@ export async function crearEnlace(gift) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 4500);
   try {
+    const session = await fetch("/api/session", {
+      method: "POST",
+      signal: controller.signal,
+    });
+    if (!session.ok) throw new Error("No se pudo iniciar la sesión");
     const response = await fetch("/api/regalos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,9 +39,25 @@ export async function crearEnlace(gift) {
     const url = new URL(data.url);
     if (!["https:", "http:"].includes(url.protocol))
       throw new Error("Enlace inválido");
+    if (data.manageToken && typeof window !== "undefined") {
+      window.__createdGift = { id: data.id, manageToken: data.manageToken };
+      try {
+        localStorage.setItem("flores-management-" + data.id, data.manageToken);
+        localStorage.setItem("flores-last-gift", data.id);
+        document.dispatchEvent(new CustomEvent("flores:gift-saved"));
+      } catch {}
+    }
     return url.href;
   } catch {
-    return enlaceConHash(gift);
+    const fallback = enlaceConHash(gift);
+    if (
+      fallback.length > 12000 ||
+      gift.fotos?.length ||
+      gift.voz ||
+      gift.permitirRespuesta
+    )
+      throw new Error("Este regalo necesita guardarse en el servidor.");
+    return fallback;
   } finally {
     clearTimeout(timer);
   }

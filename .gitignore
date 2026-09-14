@@ -25,3 +25,6 @@ deploy/servidor.local
 
 # Local video diagnostics
 preview-output/
+
+# Persistent local media
+server/media/

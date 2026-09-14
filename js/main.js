@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import anime from "animejs";
+import { GardenFallback } from "./garden-fallback.js";
+import { initCreator } from "./creator.js";
 import { Garden } from "./garden.js";
 import {
   crearEnlace,
@@ -51,7 +53,7 @@ let role = received ? "invitado" : "autor",
   link = "",
   linkGeneration = 0;
 let opened = false,
-  musicWanted = false,
+  musicWanted = true,
   musicReady = null,
   audioContext;
 const music = new Musica("S7gMzYqXIZc");
@@ -60,12 +62,25 @@ let garden;
 try {
   garden = new Garden(canvas);
 } catch (error) {
-  $("#load-error").classList.remove("hidden");
-  throw error;
+  garden = new GardenFallback(canvas);
 }
 window.__jardin = garden;
+canvas.addEventListener("webglcontextlost", (event) => {
+  event.preventDefault();
+  if (garden instanceof GardenFallback) return;
+  cancelAnimationFrame(garden._raf);
+  garden.controls?.dispose?.();
+  garden = new GardenFallback(canvas);
+  window.__jardin = garden;
+  garden.presentarRamo(current);
+  toast("Seguimos en modo ilustrado. Tu regalo está a salvo.");
+});
 document.addEventListener("flores:modal", (event) => {
   garden.editorPausado = event.detail.open;
+  if (!event.detail.open)
+    queueMicrotask(() => {
+      if (mode === "intro" && !busy) setVisible("#intro", true);
+    });
 });
 const setMode = (value) => {
   mode = value;
@@ -127,20 +142,22 @@ window.addEventListener("keydown", (e) => {
 });
 
 music.onCambio = (playing) => {
-  $("#btn-sound").setAttribute("aria-pressed", String(playing));
+  $("#btn-sound").setAttribute("aria-pressed", String(musicWanted));
   $("#btn-sound").setAttribute(
     "aria-label",
-    playing ? "Pausar música" : "Activar música",
+    musicWanted ? "Silenciar música" : "Activar música",
   );
-  $("#btn-sound").title = playing ? "Pausar música" : "Activar música";
+  $("#btn-sound").title = musicWanted ? "Silenciar música" : "Activar música";
 };
 music.onError = () => {
   musicWanted = false;
   music.onCambio(false);
   toast("La música no está disponible ahora. Tu jardín sigue aquí.");
 };
-async function toggleMusic(want = !musicWanted) {
+async function toggleMusic(want = !musicWanted, { quiet = false } = {}) {
   musicWanted = want;
+  $("#reveal-music").checked = want;
+  music.onCambio(music.sonando);
   if (!want) {
     music.pausar();
     return;
@@ -151,8 +168,8 @@ async function toggleMusic(want = !musicWanted) {
   $("#btn-sound").textContent = "♪";
   if (!ok) {
     musicReady = null;
-    musicWanted = false;
-    toast("No pudimos cargar la música. Puedes volver a intentarlo.");
+    if (!quiet)
+      toast("No pudimos cargar la música. Puedes volver a intentarlo.");
     return;
   }
   if (musicWanted) {
@@ -162,6 +179,33 @@ async function toggleMusic(want = !musicWanted) {
   }
 }
 $("#btn-sound").addEventListener("click", () => toggleMusic());
+$("#reveal-music").addEventListener("change", (event) =>
+  toggleMusic(event.target.checked),
+);
+function startDefaultMusic(event) {
+  if (
+    !musicWanted ||
+    music.sonando ||
+    event.target.closest?.("#btn-sound, #reveal-music, .voice-player")
+  )
+    return;
+  if (music.disponible) {
+    music.reproducir();
+    music.atenuar(26, reducedMotion.matches ? 0 : 1400);
+  } else toggleMusic(true, { quiet: true });
+}
+document.addEventListener("pointerdown", startDefaultMusic, { capture: true });
+document.addEventListener("keydown", startDefaultMusic, { capture: true });
+toggleMusic(true, { quiet: true });
+document.addEventListener("flores:voice-play", () => music.atenuar(4, 200));
+document.addEventListener("flores:voice-stop", () => {
+  if (
+    ![...document.querySelectorAll(".voice-player audio")].some(
+      (audio) => !audio.paused,
+    )
+  )
+    music.atenuar(26, 400);
+});
 function seedSound() {
   if (!musicWanted) return;
   try {
@@ -185,8 +229,10 @@ function seedSound() {
   }
 }
 
+let creator;
 function formData() {
   return normalizeGift({
+    ...creator?.read(),
     para: $("#f-to").value,
     mensaje: $("#f-msg").value,
     de: $("#f-from").value,
@@ -200,6 +246,7 @@ function formData() {
   });
 }
 function fillForm(data) {
+  creator?.load(data);
   $("#f-to").value = data.para;
   $("#f-msg").value = data.mensaje;
   $("#f-from").value = data.de;
@@ -218,6 +265,7 @@ function updatePreview() {
   $("#f-msg-count").textContent = Array.from($("#f-msg").value).length;
   $("#f-size-val").textContent = data.flores;
   $("#bouquet-preview").innerHTML = bouquetSVG(data);
+  creator?.refresh(data);
 }
 function saveDraft() {
   const data = formData();
@@ -243,6 +291,13 @@ for (const button of document.querySelectorAll("[data-message]"))
     saveDraft();
     $("#f-msg").focus();
   });
+creator = initCreator({
+  getGift: formData,
+  setGift: fillForm,
+  save: saveDraft,
+  getReceived: () => received,
+  onExit: enterGarden,
+});
 fillForm(current);
 
 function saveGarden() {
@@ -331,15 +386,17 @@ async function enterGarden() {
   busy = false;
   saveGarden();
 }
-$("#btn-enter").addEventListener("click", enterGarden);
+$("#btn-enter").addEventListener("click", async () => {
+  await ocultar($("#intro"));
+  creator.go(0, false);
+  abrirModal($("#gift-modal"));
+});
 $("#btn-seed").addEventListener("click", () => plant(5));
 $("#btn-gift").addEventListener("click", () => {
   if (!busy) abrirModal($("#gift-modal"));
 });
 $("#gift-close").addEventListener("click", () => cerrarModal($("#gift-modal")));
-$("#gift-cancel").addEventListener("click", () =>
-  cerrarModal($("#gift-modal")),
-);
+
 $("#btn-how").addEventListener("click", () => abrirModal($("#help-modal")));
 $("#help-close").addEventListener("click", () => cerrarModal($("#help-modal")));
 $("#help-ok").addEventListener("click", () => cerrarModal($("#help-modal")));
@@ -364,9 +421,11 @@ $("#memory-close").addEventListener("click", () => {
   $("#btn-letter").focus();
 });
 function showCard(animate = true) {
+  setVisible("#btn-share", true);
   $("#c-to").textContent = current.para || "ti";
   $("#c-from").textContent = current.de || "alguien que te quiere";
   $("#c-occasion").textContent = OCCASIONS[current.ocasion];
+  creator.renderLetter(current);
   setVisible("#card-layer", true);
   setVisible("#gift-dock", true);
   if (animate) escribir($("#c-msg"), current.mensaje);
@@ -433,8 +492,13 @@ async function presentGift(data, guest = false) {
 $("#gift-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (busy) return;
+  if (creator.pending()) {
+    toast("Termina de guardar tus fotos o tu voz antes de ver el regalo.");
+    return;
+  }
   const data = formData();
   if (!data.para) {
+    creator.go(0);
     $("#f-to").focus();
     return;
   }
@@ -443,10 +507,19 @@ $("#gift-form").addEventListener("submit", async (e) => {
   fillForm(data);
   writeStorage(DRAFT, data);
   link = enlaceConHash(data);
+  if (link.length > 12000 || data.fotos.length || data.voz) link = "";
   const generation = ++linkGeneration;
-  crearEnlace(data).then((url) => {
-    if (generation === linkGeneration) link = url;
-  });
+  crearEnlace(data)
+    .then((url) => {
+      if (generation === linkGeneration) link = url;
+    })
+    .catch(() => {
+      if (generation === linkGeneration)
+        toast(
+          "No se pudo guardar el enlace. Tu regalo sigue aquí; vuelve a intentarlo desde Editar.",
+          6000,
+        );
+    });
   await presentGift(data);
 });
 $("#btn-skip").addEventListener("click", completarCarta);
@@ -471,18 +544,38 @@ $("#btn-back").addEventListener("click", () => {
 });
 async function downloadPostcard() {
   const buttons = [$("#btn-download"), $("#btn-share")];
-  buttons.forEach((b) => (b.disabled = true));
+  const labels = buttons.map((button) => button.textContent);
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.classList.add("is-working");
+    button.setAttribute("aria-busy", "true");
+    button.textContent = "Preparando tu recuerdo…";
+  });
   try {
     await guardarPostal(current);
-    toast("Tu postal está lista para guardar. 💛");
-  } catch {
-    toast("No pudimos crear la postal. Inténtalo otra vez.");
+    toast("Tu recuerdo está listo, con sus fotos y dedicatorias. ♡");
+  } catch (error) {
+    toast(
+      error.message || "No pudimos crear la postal. Inténtalo otra vez.",
+      6000,
+    );
   } finally {
-    buttons.forEach((b) => (b.disabled = false));
+    buttons.forEach((button, i) => {
+      button.disabled = false;
+      button.classList.remove("is-working");
+      button.removeAttribute("aria-busy");
+      button.textContent = labels[i];
+    });
   }
 }
 $("#btn-download").addEventListener("click", downloadPostcard);
 async function copyLink() {
+  if (!link) {
+    toast(
+      "El regalo aún no tiene enlace. Espera un momento o vuelve a guardarlo desde Editar.",
+    );
+    return;
+  }
   if (await copiar(link))
     toast("Enlace copiado. Ya puedes hacerle llegar su jardín. 💛");
   else {
@@ -496,6 +589,7 @@ $("#btn-copy").addEventListener("click", copyLink);
 $("#link-close").addEventListener("click", () => cerrarModal($("#link-modal")));
 $("#btn-share").addEventListener("click", async () => {
   if (role === "invitado") return downloadPostcard();
+  if (!link) return copyLink();
   if (navigator.share) {
     try {
       await navigator.share({
@@ -514,7 +608,7 @@ $("#btn-open").addEventListener("click", async () => {
   if (busy || !received) return;
   busy = true;
   $("#btn-open").disabled = true;
-  if ($("#reveal-music").checked) toggleMusic(true);
+  toggleMusic($("#reveal-music").checked);
   if (!opened) {
     registrarApertura(received.id);
     opened = true;
@@ -560,4 +654,11 @@ start().catch((error) => {
   console.error("[flores] no se pudo abrir el jardín", error);
   setVisible("#load-error", true);
   setVisible("#loader", true);
+});
+
+document.addEventListener("flores:gift-deleted", () => {
+  link = "";
+  $("#gift-link").value = "";
+  for (const id of ["#btn-copy", "#btn-share", "#btn-island"])
+    setVisible(id, false);
 });

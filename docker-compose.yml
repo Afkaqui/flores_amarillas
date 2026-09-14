@@ -9,6 +9,10 @@ services:
       - PORT=3000
       - ORIGEN=${ORIGEN:-https://amarillas.pascare.tech}
       - DATABASE_URL=${DATABASE_URL}
+      - MEDIA_ROOT=/app/media
+      - AI_DAILY_LIMIT=${AI_DAILY_LIMIT:-250}
+    volumes:
+      - flores_media:/app/media
     ports:
       # Sólo en la puerta de enlace de Docker: nginx_proxy llega por ahí
       # (host.docker.internal -> 10.200.0.1) y el puerto no queda abierto a
@@ -21,3 +25,6 @@ services:
 networks:
   postgresql_default:
     external: true
+
+volumes:
+  flores_media:

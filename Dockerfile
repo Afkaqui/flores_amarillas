@@ -4,7 +4,7 @@ FROM node:20-bookworm-slim
 
 # sharp rasteriza el SVG de la vista previa; necesita tipografías del sistema.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends fonts-dejavu-core fontconfig \
+ && apt-get install -y --no-install-recommends fonts-dejavu-core fontconfig ffmpeg \
  && rm -rf /var/lib/apt/lists/* \
  && fc-cache -f
 

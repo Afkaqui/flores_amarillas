@@ -1,7 +1,7 @@
 /* ============================================================
    Música de fondo con el reproductor de YouTube (iframe invisible).
-   El navegador sólo deja sonar tras un gesto del usuario, así que
-   `reproducir()` se llama desde un click.
+   Se intenta reproducir al entrar; si el navegador bloquea el inicio,
+   la aplicación reintenta desde el primer gesto del usuario.
    ============================================================ */
 
 const API = "https://www.youtube.com/iframe_api";
@@ -115,8 +115,7 @@ export class Musica {
       this.player.unMute();
       this.player.setVolume(this.volumen);
       this.player.playVideo();
-      this.sonando = true;
-      this.onCambio(true);
+      // El estado real llega en onStateChange; un autoplay bloqueado no cuenta como reproducción.
     } catch {
       /* el iframe todavía no responde */
     }
@@ -141,6 +140,8 @@ export class Musica {
 
   /** Baja el volumen un rato (para que se escuche la escena del regalo) */
   atenuar(destino = 12, ms = 800) {
+    cancelAnimationFrame(this.fadeFrame);
+    this.volumen = destino;
     if (!this.disponible || !this.player) return;
     if (!ms) {
       this.player.setVolume(destino);
@@ -157,7 +158,7 @@ export class Musica {
       } catch {
         return;
       }
-      if (k < 1) requestAnimationFrame(paso);
+      if (k < 1) this.fadeFrame = requestAnimationFrame(paso);
     };
     paso();
   }

@@ -1,3 +1,9 @@
+import { normalizeDrawings } from "./drawing.js";
+export const COMPOSITIONS = {
+  sencillo: "Sencillo",
+  silvestre: "Silvestre",
+  abundante: "Abundante",
+};
 export const DEFAULT_MESSAGE =
   "Gracias por hacer florecer mis días. Estas flores son una pequeña forma de decirte lo mucho que te quiero.";
 export const RIBBONS = { rosa: "#b76e79", miel: "#b97f32", lavanda: "#9383b5" };
@@ -19,7 +25,22 @@ const option = (value, options, fallback) =>
 /** Shared by the browser, API and previews; old gifts keep working. */
 export function normalizeGift(value = {}) {
   const data = value && typeof value === "object" ? value : {};
+  const fotos = (Array.isArray(data.fotos) ? data.fotos : [])
+    .slice(0, 3)
+    .filter(
+      (v) => typeof v === "string" && /^\/media\/[a-f0-9]{48}\.webp$/.test(v),
+    );
+  const momentos = fotos.map((foto) => ({
+    foto,
+    texto: text(
+      (Array.isArray(data.momentos) ? data.momentos : []).find(
+        (item) => item?.foto === foto,
+      )?.texto,
+      120,
+    ),
+  }));
   return {
+    version: 2,
     para: text(data.para ?? data.p, 28),
     mensaje: text(data.mensaje ?? data.m, 360),
     de: text(data.de ?? data.d, 28),
@@ -35,6 +56,16 @@ export function normalizeGift(value = {}) {
       .slice(0, 3)
       .map((v) => text(v, 60))
       .filter(Boolean),
+    composicion: option(data.composicion, COMPOSITIONS, "silvestre"),
+    dibujos: normalizeDrawings(data.dibujos),
+    fotos,
+    momentos,
+    voz:
+      typeof data.voz === "string" &&
+      /^\/media\/[a-f0-9]{48}\.(webm|mp4|ogg)$/.test(data.voz)
+        ? data.voz
+        : "",
+    permitirRespuesta: data.permitirRespuesta === true,
     semilla: Number.isFinite(data.semilla)
       ? Math.max(0, Math.min(0.999999, data.semilla))
       : 0.421,

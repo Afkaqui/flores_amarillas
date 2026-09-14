@@ -1090,6 +1090,19 @@ export class Garden {
         seed: rnd(),
       });
       flower.userData.regalo = true;
+      if (data.composicion === "silvestre" && i % 4 === 0) {
+        flower.petalMat.color.set("#fffbed");
+        flower.petalMat.emissive.set("#161611");
+        for (const [k, p] of flower.petalPivots.entries()) {
+          p.mesh.scale.x *= 0.6;
+          p.tiltOpen = 0.03;
+          if (k > 11) p.mesh.visible = false;
+        }
+      }
+      if (data.composicion === "sencillo")
+        flower.head.userData.baseScale *= 0.85;
+      if (data.composicion === "abundante")
+        flower.head.userData.baseScale *= 1.08;
       flower.fijarEscala(site.alto / flower.userData.altura);
       flower.userData.tiltZ = site.tiltZ;
       flower.userData.tiltX = site.tiltX;

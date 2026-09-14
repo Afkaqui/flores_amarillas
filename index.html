@@ -144,11 +144,14 @@
         </p>
         <div class="intro-actions">
           <button id="btn-enter" class="btn btn-primary">
-            Crear un regalo <span aria-hidden="true">↗</span></button
+            Preparar un regalo <span aria-hidden="true">↗</span></button
           ><button id="btn-how" class="text-button">
             Conoce el jardín <span aria-hidden="true">↓</span>
           </button>
         </div>
+        <a id="my-gift-open" class="my-gift-open hidden" href="/"
+          >Volver a mi último regalo y sus respuestas ↗</a
+        >
         <p class="hint-small">
           <span aria-hidden="true">♡</span> Hecho por ti. Guardado para siempre
           en su recuerdo.
@@ -194,162 +197,625 @@
       aria-modal="true"
       aria-labelledby="gift-title"
     >
-      <form class="modal-card gift-editor" id="gift-form">
+      <form class="modal-card gift-editor creator" id="gift-form" novalidate>
         <button
           type="button"
           class="modal-close"
           id="gift-close"
-          aria-label="Cerrar"
+          aria-label="Cerrar creador"
         >
           ×
         </button>
-        <p class="eyebrow">01 / UN REGALO MUY TUYO</p>
-        <h2 id="gift-title" class="modal-title">
-          Lo bonito está<br />en los <em>detalles.</em>
-        </h2>
-        <div class="editor-columns">
-          <div>
-            <label class="field"
-              ><span>¿Para quién florece este jardín?</span
-              ><input
-                id="f-to"
-                type="text"
-                maxlength="28"
-                placeholder="Su nombre o ese apodo especial"
-                required
-                autocomplete="off"
-            /></label>
-            <label class="field"
-              ><span>Lo que quieres decirle</span
-              ><textarea
-                id="f-msg"
-                maxlength="360"
-                rows="4"
-                placeholder="Gracias por hacer florecer mis días…"
-              ></textarea
-              ><em class="count"><span id="f-msg-count">0</span>/360</em></label
+        <div class="creator-heading">
+          <p class="eyebrow">HECHO POR TI, PARA SU CORAZÓN</p>
+          <h2 class="modal-title" id="gift-title">
+            Un detalle que <em>florece.</em>
+          </h2>
+        </div>
+        <nav class="creator-steps" aria-label="Pasos del regalo">
+          <button type="button" data-step="0" aria-current="step">
+            <span>1</span>Para quién</button
+          ><button type="button" data-step="1"><span>2</span>Su ramo</button
+          ><button type="button" data-step="2"><span>3</span>Tu carta</button>
+        </nav>
+        <div class="creator-layout">
+          <div class="creator-content">
+            <section
+              class="creator-step"
+              data-panel="0"
+              aria-labelledby="step-to-title"
             >
-            <div class="suggestions" aria-label="Ideas para tu mensaje">
-              <span>Un poquito de inspiración:</span
-              ><button type="button" data-message="amor">Te quiero</button
-              ><button type="button" data-message="gracias">
-                Gracias por estar</button
-              ><button type="button" data-message="distancia">
-                A la distancia
+              <p class="step-number">EL COMIENZO DE ALGO BONITO</p>
+              <h3 id="step-to-title">¿Quién te hace sonreír?</h3>
+              <p class="step-description">
+                Hay personas que merecen un jardín entero. Empecemos por su
+                nombre.
+              </p>
+              <label class="field"
+                ><span>Este regalo es para</span
+                ><input
+                  id="f-to"
+                  maxlength="28"
+                  placeholder="Su nombre o ese apodo especial"
+                  required
+                  autocomplete="off"
+              /></label>
+              <label class="field"
+                ><span>Con cariño, de</span
+                ><input
+                  id="f-from"
+                  maxlength="28"
+                  placeholder="Tu nombre"
+                  autocomplete="off"
+              /></label>
+              <label class="field"
+                ><span>El motivo</span
+                ><select id="f-occasion">
+                  <option value="primavera">21 de septiembre</option>
+                  <option value="amor">Porque te quiero</option>
+                  <option value="aniversario">Nuestro aniversario</option>
+                  <option value="cumple">Su cumpleaños</option>
+                  <option value="siempre">Porque sí, porque tú</option>
+                </select></label
+              >
+              <button type="button" class="complice-invite" id="assistant-open">
+                <span class="complice-mark">✳</span
+                ><span
+                  ><b>Un poquito de inspiración</b
+                  ><small
+                    >Tu cómplice te ayuda a encontrar las palabras.</small
+                  ></span
+                ><span>↗</span>
               </button>
-            </div>
-            <label class="field"
-              ><span>Con cariño, de</span
-              ><input
-                id="f-from"
-                type="text"
-                maxlength="28"
-                placeholder="Tu nombre"
-                autocomplete="off"
-            /></label>
-            <details class="memories-editor">
-              <summary>
-                Tres flores, tres pequeñas razones <span>opcional</span>
-              </summary>
-              <p>Podrá descubrirlas al tocar las flores de su ramo.</p>
-              <input
-                class="memory-input"
-                id="f-memory-1"
-                maxlength="60"
-                aria-label="Primera razón"
-                placeholder="Por tu forma de hacerme reír"
-              /><input
-                class="memory-input"
-                id="f-memory-2"
-                maxlength="60"
-                aria-label="Segunda razón"
-                placeholder="Por los días que compartimos"
-              /><input
-                class="memory-input"
-                id="f-memory-3"
-                maxlength="60"
-                aria-label="Tercera razón"
-                placeholder="Por todo lo que viene"
-              />
-            </details>
+            </section>
+            <section
+              class="creator-step hidden"
+              data-panel="1"
+              aria-labelledby="step-garden-title"
+            >
+              <p class="step-number">FLORES QUE SE PARECEN A TI</p>
+              <h3 id="step-garden-title">Dale tu toque.</h3>
+              <fieldset class="composition-options">
+                <legend>Su ramo</legend>
+                <label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="sencillo"
+                  /><span>❀</span><b>Sencillo</b
+                  ><small>Un gesto delicado</small></label
+                ><label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="silvestre"
+                    checked
+                  /><span>✿</span><b>Silvestre</b
+                  ><small>Libre y alegre</small></label
+                ><label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="abundante"
+                  /><span>✺</span><b>Abundante</b
+                  ><small>Todo mi cariño</small></label
+                >
+              </fieldset>
+              <div class="field-row">
+                <fieldset class="swatches">
+                  <legend>El lazo</legend>
+                  <label
+                    ><input
+                      type="radio"
+                      name="cinta"
+                      value="rosa"
+                      checked
+                    /><span style="--swatch: #b76e79"></span>Rosa</label
+                  ><label
+                    ><input type="radio" name="cinta" value="miel" /><span
+                      style="--swatch: #b97f32"
+                    ></span
+                    >Miel</label
+                  ><label
+                    ><input type="radio" name="cinta" value="lavanda" /><span
+                      style="--swatch: #9383b5"
+                    ></span
+                    >Lavanda</label
+                  >
+                </fieldset>
+                <fieldset class="swatches">
+                  <legend>El papel</legend>
+                  <label
+                    ><input
+                      type="radio"
+                      name="papel"
+                      value="marfil"
+                      checked
+                    /><span style="--swatch: #f5e8d0"></span>Marfil</label
+                  ><label
+                    ><input type="radio" name="papel" value="rosa" /><span
+                      style="--swatch: #ecd3cc"
+                    ></span
+                    >Rosa</label
+                  ><label
+                    ><input type="radio" name="papel" value="kraft" /><span
+                      style="--swatch: #c5a57d"
+                    ></span
+                    >Kraft</label
+                  >
+                </fieldset>
+              </div>
+              <div class="field-row">
+                <label class="field field-range"
+                  ><span>Flores <b id="f-size-val">12</b></span
+                  ><input
+                    id="f-size"
+                    type="range"
+                    min="3"
+                    max="24"
+                    value="12" /></label
+                ><label class="field"
+                  ><span>Su cielo</span
+                  ><select id="f-ambient">
+                    <option value="atardecer">Día luminoso</option>
+                    <option value="noche">Noche de luciérnagas</option>
+                  </select></label
+                >
+              </div>
+            </section>
+            <section
+              class="creator-step hidden"
+              data-panel="2"
+              aria-labelledby="step-letter-title"
+            >
+              <p class="step-number">LO QUE FLORECE POR DENTRO</p>
+              <h3 id="step-letter-title">Ahora, tus palabras.</h3>
+              <p class="step-description">
+                Tus palabras son el regalo. Los pequeños detalles lo hacen muy
+                tuyo.
+              </p>
+              <div class="letter-workspace">
+                <div class="letter-main">
+                  <label class="field letter-paper"
+                    ><span>Querida persona especial…</span
+                    ><textarea
+                      id="f-msg"
+                      maxlength="360"
+                      rows="6"
+                      placeholder="Hay algo que quería decirte…"
+                    ></textarea
+                    ><em class="count"
+                      ><span id="f-msg-count">0</span>/360</em
+                    ></label
+                  >
+                  <div class="letter-inspiration">
+                    <p>¿Por dónde empezar?</p>
+                    <div class="suggestions">
+                      <button type="button" data-message="amor">
+                        <span>♡</span>Te quiero
+                      </button>
+                      <button type="button" data-message="gracias">
+                        <span>✷</span>Gracias por estar
+                      </button>
+                      <button type="button" data-message="distancia">
+                        <span>↗</span>Te extraño
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      id="assistant-letter"
+                      class="complice-invite"
+                    >
+                      <span class="complice-mark">✳</span
+                      ><span
+                        ><b>Encontrémosle las palabras</b
+                        ><small
+                          >Cuéntame algo suyo y elige entre varias ideas.</small
+                        ></span
+                      ><span>↗</span>
+                    </button>
+                  </div>
+                  <div class="draw-invite">
+                    <span>❋</span>
+                    <div>
+                      <b>Dibújale algo.</b>
+                      <p>
+                        Un corazón, una carita, ese chiste suyo. Lo encontrará
+                        dentro de la carta.
+                      </p>
+                    </div>
+                    <button type="button" class="btn btn-soft" id="draw-toggle">
+                      Dibujar ↗
+                    </button>
+                  </div>
+                  <div id="drawing-editor" class="drawing-editor hidden">
+                    <div class="drawing-heading">
+                      <b>Un detalle de tu puño y corazón.</b
+                      ><button
+                        type="button"
+                        class="text-button"
+                        id="draw-hide"
+                        aria-label="Cerrar dibujo"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p class="drawing-hint">
+                      Dibuja a tu manera o empieza con una idea. Después hazla
+                      tuya.
+                    </p>
+                    <div
+                      class="drawing-starters"
+                      aria-label="Ideas para empezar"
+                    >
+                      <button type="button" id="draw-template">
+                        ❀ Una flor
+                      </button>
+                      <button type="button" data-draw-template="heart">
+                        ♡ Un corazón
+                      </button>
+                      <button type="button" data-draw-template="sparkle">
+                        ✧ Un destello
+                      </button>
+                    </div>
+                    <div class="drawing-workspace">
+                      <canvas
+                        id="drawing-canvas"
+                        width="600"
+                        height="600"
+                        aria-label="Dibuja un detalle para la carta con el dedo o mouse"
+                      ></canvas>
+                      <div class="drawing-tools">
+                        <span class="drawing-tool-label">Tu tinta</span>
+                        <div id="ink-colors" aria-label="Color del trazo"></div>
+                        <button
+                          type="button"
+                          id="draw-width"
+                          aria-pressed="false"
+                        >
+                          Trazo grueso</button
+                        ><button type="button" id="draw-undo">Deshacer</button
+                        ><button type="button" id="draw-clear">Limpiar</button>
+                      </div>
+                    </div>
+                    <label class="field"
+                      ><span>Una frase para acompañarlo</span
+                      ><input
+                        id="draw-note"
+                        maxlength="80"
+                        placeholder="Ese abrazo que te debo…" /></label
+                    ><button
+                      type="button"
+                      id="draw-plant"
+                      class="btn btn-primary"
+                    >
+                      Añadir a la carta ♡
+                    </button>
+                    <p id="draw-status" role="status"></p>
+                  </div>
+                  <div
+                    id="drawing-list"
+                    class="drawing-list"
+                    aria-label="Tus dibujos para la carta"
+                  ></div>
+                </div>
+                <div class="letter-details">
+                  <p class="details-heading">
+                    UN POQUITO MÁS DE TI <span>Todo es opcional</span>
+                  </p>
+                  <details class="detail-card memories-editor">
+                    <summary>
+                      <span class="detail-icon">✿</span
+                      ><span
+                        ><b>Tres cosas que adoro de ti</b
+                        ><small
+                          >Una sorpresa escondida en cada flor.</small
+                        ></span
+                      ><span class="detail-plus">+</span>
+                    </summary>
+                    <div class="detail-body">
+                      <p>Las descubrirá al tocar las flores del ramo.</p>
+                      <label class="reason-field"
+                        ><span>01</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-1"
+                          maxlength="60"
+                          aria-label="Primera razón"
+                          placeholder="Tu manera de hacerme reír"
+                      /></label>
+                      <label class="reason-field"
+                        ><span>02</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-2"
+                          maxlength="60"
+                          aria-label="Segunda razón"
+                          placeholder="Lo fácil que es estar contigo"
+                      /></label>
+                      <label class="reason-field"
+                        ><span>03</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-3"
+                          maxlength="60"
+                          aria-label="Tercera razón"
+                          placeholder="Todo lo que nos queda por vivir"
+                      /></label>
+                    </div>
+                  </details>
+                  <details class="detail-card">
+                    <summary>
+                      <span class="detail-icon">▧</span
+                      ><span
+                        ><b>Un recuerdo en fotos</b
+                        ><small>Esos momentos que dicen tanto.</small></span
+                      ><span class="detail-plus">+</span>
+                    </summary>
+                    <div class="detail-body">
+                      <label class="photo-drop" id="photo-drop"
+                        ><input
+                          id="photo-input"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                        /><span class="upload-symbol" aria-hidden="true"
+                          >＋</span
+                        ><b>Elige tus recuerdos</b
+                        ><span>o arrastra las fotos aquí</span
+                        ><small
+                          >Hasta 3 fotos · JPG, PNG o WebP · 10 MB cada
+                          una</small
+                        ></label
+                      >
+                      <p class="photo-caption-help">
+                        Cada foto puede llevar su propia frase. Así el recuerdo
+                        se cuenta completo.
+                      </p>
+                      <div id="photo-list" class="photo-list"></div>
+                    </div>
+                  </details>
+                  <details class="detail-card">
+                    <summary>
+                      <span class="detail-icon">∿</span
+                      ><span
+                        ><b>Que también escuche tu voz</b
+                        ><small
+                          >Un «te quiero» suena distinto cuando es tuyo.</small
+                        ></span
+                      ><span class="detail-plus">+</span>
+                    </summary>
+                    <div class="detail-body">
+                      <div class="voice-studio">
+                        <span class="voice-wave" aria-hidden="true"
+                          >▂ ▅ ▃ ▇ ▄ ▂ ▆ ▃ ▅ ▂</span
+                        >
+                        <p>Un mensaje de hasta 30 segundos.</p>
+                        <div class="voice-controls">
+                          <button
+                            type="button"
+                            id="voice-record"
+                            class="btn btn-soft"
+                          >
+                            ● Grabar mi voz</button
+                          ><button
+                            type="button"
+                            id="voice-remove"
+                            class="text-button hidden"
+                          >
+                            Quitar audio
+                          </button>
+                          <div id="voice-preview" class="hidden"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                  <label class="reply-choice"
+                    ><span class="detail-icon">♡</span
+                    ><span
+                      ><b>Dejar la puerta abierta</b
+                      ><small
+                        >Podrá responder con un dibujito y unas palabras en este
+                        mismo regalo.</small
+                      ></span
+                    ><input type="checkbox" id="f-reply" role="switch" /><span
+                      class="reply-switch"
+                      aria-hidden="true"
+                    ></span
+                  ></label>
+                  <p id="media-status" class="media-status" role="status"></p>
+                </div>
+              </div>
+            </section>
+            <aside
+              id="assistant-panel"
+              class="assistant-panel hidden"
+              aria-label="Tu cómplice"
+            >
+              <div class="assistant-title">
+                <span class="complice-mark">✳</span>
+                <div>
+                  <b>Tu cómplice</b
+                  ><small>Un empujoncito para decirlo a tu manera.</small>
+                </div>
+                <button
+                  type="button"
+                  id="assistant-close"
+                  class="text-button"
+                  aria-label="Cerrar asistente"
+                >
+                  ×
+                </button>
+              </div>
+              <p class="assistant-disclosure">
+                Lo que escribas aquí se enviará al asistente. La conversación no
+                se comparte con el regalo.
+              </p>
+              <div
+                id="assistant-history"
+                class="assistant-history"
+                aria-live="polite"
+              ></div>
+              <div
+                id="assistant-loading"
+                class="assistant-loading hidden"
+                role="status"
+                aria-live="polite"
+              >
+                <div class="thinking-heading">
+                  <span class="thinking-flower" aria-hidden="true">✳</span>
+                  <div>
+                    <b id="assistant-loading-label"
+                      >Buscando las palabras para ti…</b
+                    ><small>Tres maneras de decir algo bonito.</small>
+                  </div>
+                  <span class="thinking-dots" aria-hidden="true"
+                    ><i></i><i></i><i></i
+                  ></span>
+                </div>
+                <div class="thinking-cards" aria-hidden="true">
+                  <div><span>♡</span><i></i><i></i><i></i></div>
+                  <div><span>✿</span><i></i><i></i><i></i></div>
+                  <div><span>✧</span><i></i><i></i><i></i></div>
+                </div>
+              </div>
+              <div id="assistant-proposal" class="assistant-proposal hidden">
+                <p id="assistant-proposal-text"></p>
+                <div id="assistant-options" class="assistant-options"></div>
+                <div
+                  id="assistant-selection"
+                  class="assistant-selection hidden"
+                >
+                  <div class="selection-heading">
+                    <span aria-hidden="true">♡</span>
+                    <div>
+                      <small>SELECCIONASTE ESTA OPCIÓN</small>
+                      <h4 id="assistant-selection-title"></h4>
+                    </div>
+                    <button
+                      type="button"
+                      id="assistant-change"
+                      class="text-button"
+                    >
+                      Ver otras ideas
+                    </button>
+                  </div>
+                  <p>
+                    Dale tu toque aquí. También puedes contarme qué cambiar y la
+                    afinamos juntos.
+                  </p>
+                  <label class="field"
+                    ><span>Así quieres decirlo</span
+                    ><textarea
+                      id="assistant-edit"
+                      maxlength="360"
+                      rows="5"
+                      aria-describedby="assistant-edit-count"
+                    ></textarea
+                    ><em class="count" id="assistant-edit-count"
+                      >0/360</em
+                    ></label
+                  >
+                  <div class="selection-actions">
+                    <button
+                      type="button"
+                      id="assistant-refine"
+                      class="btn btn-soft"
+                    >
+                      Afinar esta idea contigo ✳</button
+                    ><button
+                      type="button"
+                      id="assistant-reset-edit"
+                      class="text-button"
+                    >
+                      Recuperar texto original
+                    </button>
+                  </div>
+                </div>
+                <div class="proposal-actions">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="assistant-apply"
+                    disabled
+                  >
+                    Usar en mi carta ♡</button
+                  ><button
+                    type="button"
+                    class="text-button"
+                    id="assistant-discard"
+                  >
+                    Descartar
+                  </button>
+                </div>
+              </div>
+              <label class="field"
+                ><span>¿Qué te gustaría preparar?</span
+                ><textarea
+                  id="assistant-input"
+                  maxlength="1200"
+                  rows="2"
+                  placeholder="Para Ana. Algo sencillo, alegre y poco cursi…"
+                ></textarea>
+              </label>
+              <div id="assistant-followups" class="assistant-followups"></div>
+              <div class="assistant-actions">
+                <button
+                  type="button"
+                  id="assistant-send"
+                  class="btn btn-primary"
+                >
+                  Crear opciones para mí ↗</button
+                ><button
+                  type="button"
+                  id="assistant-cancel"
+                  class="text-button hidden"
+                >
+                  Cancelar</button
+                ><button
+                  type="button"
+                  id="assistant-undo"
+                  class="text-button hidden"
+                >
+                  Deshacer propuesta
+                </button>
+              </div>
+              <p id="assistant-status" role="status"></p>
+            </aside>
           </div>
-          <div class="customization">
+          <aside class="creator-preview">
+            <p class="eyebrow">UN ADELANTO DE SU SONRISA</p>
             <div
               id="bouquet-preview"
               class="bouquet-preview"
               aria-label="Vista previa del ramo"
             ></div>
-            <p class="preview-caption">Un ramo tan único como lo que sientes</p>
-            <fieldset class="swatches">
-              <legend>La cinta</legend>
-              <label
-                ><input type="radio" name="cinta" value="rosa" checked /><span
-                  style="--swatch: #b76e79"
-                ></span
-                >Rosa</label
-              ><label
-                ><input type="radio" name="cinta" value="miel" /><span
-                  style="--swatch: #b97f32"
-                ></span
-                >Miel</label
-              ><label
-                ><input type="radio" name="cinta" value="lavanda" /><span
-                  style="--swatch: #9383b5"
-                ></span
-                >Lavanda</label
-              >
-            </fieldset>
-            <fieldset class="swatches">
-              <legend>El papel</legend>
-              <label
-                ><input type="radio" name="papel" value="marfil" checked /><span
-                  style="--swatch: #f5e8d0"
-                ></span
-                >Marfil</label
-              ><label
-                ><input type="radio" name="papel" value="rosa" /><span
-                  style="--swatch: #ecd3cc"
-                ></span
-                >Rosa</label
-              ><label
-                ><input type="radio" name="papel" value="kraft" /><span
-                  style="--swatch: #c5a57d"
-                ></span
-                >Kraft</label
-              >
-            </fieldset>
-            <label class="field field-range"
-              ><span
-                ><span>Flores en su ramo</span> <b id="f-size-val">12</b></span
-              ><input id="f-size" type="range" min="3" max="24" value="12"
-            /></label>
-            <div class="field-row">
-              <label class="field"
-                ><span>El momento</span
-                ><select id="f-ambient">
-                  <option value="atardecer">Tarde de sol</option>
-                  <option value="noche">Noche de luciérnagas</option>
-                </select></label
-              ><label class="field"
-                ><span>La ocasión</span
-                ><select id="f-occasion">
-                  <option value="primavera">21 de septiembre</option>
-                  <option value="amor">Porque te quiero</option>
-                  <option value="aniversario">Aniversario</option>
-                  <option value="cumple">Cumpleaños</option>
-                  <option value="siempre">Porque sí</option>
-                </select></label
-              >
-            </div>
-          </div>
+            <p class="preview-name" id="preview-name">Para alguien especial</p>
+            <p class="preview-message" id="preview-message">
+              Unas flores. Mil cosas que decir.
+            </p>
+            <div
+              id="letter-drawings-preview"
+              class="letter-drawings-preview"
+            ></div>
+            <span class="preview-caption"
+              >Un ramo y unas palabras, sólo para esa persona.</span
+            >
+          </aside>
         </div>
-        <div class="modal-actions">
+        <div class="modal-actions creator-footer">
           <span class="draft-note" id="draft-note"
-            >Tu carta se guarda mientras escribes</span
+            >Tu regalo se guarda mientras lo preparas</span
           ><button type="button" class="text-button" id="gift-cancel">
             Volver</button
-          ><button type="submit" class="btn btn-primary" id="gift-submit">
-            Ver mi regalo <span aria-hidden="true">↗</span>
+          ><button type="button" class="btn btn-primary" id="step-next">
+            Continuar ↗</button
+          ><button
+            type="submit"
+            class="btn btn-primary hidden"
+            id="gift-submit"
+          >
+            Ver mi regalo ↗
           </button>
         </div>
       </form>
@@ -374,7 +840,8 @@
         </button>
         <p class="envelope-hint">Toca el sello para abrir tu regalo</p>
         <label class="music-choice"
-          ><input type="checkbox" id="reveal-music" /> Abrir con música</label
+          ><input type="checkbox" id="reveal-music" checked /> Abrir con
+          música</label
         >
       </div>
     </section>
@@ -407,6 +874,160 @@
           id="memory-list"
           aria-label="Pequeñas razones"
         ></div>
+        <section
+          id="letter-extras"
+          class="letter-extras"
+          aria-label="Detalles y respuestas de esta carta"
+        >
+          <div id="island-gallery" class="island-gallery"></div>
+          <div id="gift-media" class="gift-media"></div>
+          <section
+            id="reply-thread"
+            class="reply-thread hidden"
+            aria-labelledby="reply-thread-title"
+          >
+            <div class="reply-thread-heading">
+              <h3 id="reply-thread-title">Lo que floreció de esta carta</h3>
+              <button
+                type="button"
+                id="reply-refresh"
+                class="text-button"
+                aria-label="Actualizar respuestas"
+              >
+                ↻
+              </button>
+            </div>
+            <p id="reply-context" class="reply-context"></p>
+            <div id="reply-list" class="reply-list" aria-live="polite"></div>
+            <p id="reply-read-status" class="inline-status" role="status"></p>
+            <button type="button" id="reply-copy" class="btn btn-soft hidden">
+              Copiar enlace para enviárselo ↗
+            </button>
+            <button type="button" id="reply-open" class="btn btn-soft hidden">
+              Dejarle unas palabras ♡
+            </button>
+            <div id="reply-editor" class="reply-editor hidden">
+              <div class="reply-editor-heading">
+                <h4>Ahora, un poquito de ti.</h4>
+                <button
+                  type="button"
+                  id="reply-cancel"
+                  class="text-button"
+                  aria-label="Cerrar mi respuesta"
+                >
+                  ×
+                </button>
+              </div>
+              <label class="field"
+                ><span>¿Cómo quieres firmar?</span
+                ><input
+                  id="reply-name"
+                  maxlength="28"
+                  autocomplete="nickname"
+                  placeholder="Tu nombre o apodo"
+                  aria-describedby="reply-privacy"
+              /></label>
+              <label class="field"
+                ><span>Lo que te hizo sentir</span
+                ><textarea
+                  id="reply-note"
+                  maxlength="80"
+                  rows="3"
+                  placeholder="Me sacaste una sonrisa. Gracias por pensar en mí…"
+                ></textarea
+                ><em class="count" id="reply-count">0/80</em></label
+              >
+              <div class="reply-starters">
+                <button
+                  type="button"
+                  data-reply-start="Me hiciste sonreír. Gracias por este detalle tan bonito ♡"
+                >
+                  Me hiciste sonreír</button
+                ><button
+                  type="button"
+                  data-reply-start="Te mando un abrazo enorme. Yo también pienso en ti ♡"
+                >
+                  Un abrazo de vuelta
+                </button>
+              </div>
+              <details class="reply-drawing-tools">
+                <summary>Acompañarlo con un dibujito <span>✿</span></summary>
+                <p>Elige un color para la flor o haz tu propio dibujo.</p>
+                <div id="reply-colors" class="reply-colors"></div>
+                <canvas
+                  id="reply-canvas"
+                  width="600"
+                  height="600"
+                  aria-label="Dibuja una respuesta para esta carta"
+                ></canvas>
+                <div class="reply-sketch-actions">
+                  <button
+                    type="button"
+                    id="reply-draw-clear"
+                    class="text-button"
+                  >
+                    Dibujar desde cero</button
+                  ><button
+                    type="button"
+                    id="reply-draw-undo"
+                    class="text-button"
+                  >
+                    Deshacer</button
+                  ><button
+                    type="button"
+                    id="reply-draw-guide"
+                    class="text-button"
+                  >
+                    Usar flor guía
+                  </button>
+                </div>
+              </details>
+              <p id="reply-privacy" class="reply-privacy">
+                Sin crear una cuenta. Recordamos tu apodo en este navegador. Tu
+                respuesta y firma se guardan en el regalo y las verá quien tenga
+                el enlace.
+              </p>
+              <button type="button" id="reply-save" class="btn btn-primary">
+                Dejar mi respuesta ♡
+              </button>
+              <p id="reply-status" class="inline-status" role="status"></p>
+            </div>
+          </section>
+          <div id="gift-management" class="gift-management hidden">
+            <button type="button" id="gift-delete" class="text-button">
+              Eliminar este regalo
+            </button>
+            <div
+              id="gift-delete-confirm"
+              class="delete-confirm hidden"
+              role="group"
+              aria-labelledby="delete-title"
+            >
+              <h4 id="delete-title">¿Eliminar este regalo?</h4>
+              <p>
+                El enlace dejará de abrirse. También se borrarán sus respuestas
+                y los archivos que no use otro regalo. Esta acción no se puede
+                deshacer.
+              </p>
+              <div>
+                <button
+                  type="button"
+                  id="gift-delete-cancel"
+                  class="btn btn-soft"
+                >
+                  Conservarlo</button
+                ><button
+                  type="button"
+                  id="gift-delete-yes"
+                  class="btn btn-danger"
+                >
+                  Sí, eliminar
+                </button>
+              </div>
+            </div>
+            <p id="management-status" class="inline-status" role="status"></p>
+          </div>
+        </section>
         <div class="card-actions">
           <button class="btn btn-primary" id="btn-share">
             Compartir regalo <span aria-hidden="true">↗</span></button
@@ -421,6 +1042,7 @@
       </article>
     </section>
     <footer class="gift-dock hidden" id="gift-dock">
+      <button class="btn btn-soft" id="btn-island">Ver respuestas ♡</button>
       <button class="btn btn-soft" id="btn-letter">Leer mi carta</button
       ><button class="text-button" id="btn-replay">Repetir la sorpresa</button
       ><button class="text-button" id="btn-back">Volver al jardín</button>
