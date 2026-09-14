@@ -15,3 +15,6 @@ Thumbs.db
 
 # Datos del servidor para el despliegue (no van al repositorio)
 deploy/servidor.local
+
+# Config local de herramientas
+.claude/
