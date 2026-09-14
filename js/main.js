@@ -86,6 +86,7 @@ canvas.addEventListener("webglcontextlost", (event) => {
 });
 document.addEventListener("flores:modal", (event) => {
   garden.editorPausado = event.detail.open;
+  if (event.detail.open) closeMemory(false);
   if (!event.detail.open)
     queueMicrotask(() => {
       if (mode === "intro" && !busy) setVisible("#intro", true);
@@ -380,7 +381,7 @@ async function enterGarden() {
   busy = true;
   completarCarta();
   cerrarModal($("#gift-modal"));
-  setVisible("#memory-popover", false);
+  closeMemory(false);
   setVisible("#card-layer", false);
   setVisible("#gift-dock", false);
   setVisible("#reveal", false);
@@ -428,14 +429,42 @@ $("#reset-confirm").addEventListener("click", () => {
   toast("Un nuevo comienzo. Tu carta sigue guardada.");
 });
 
+let memoryTimer = null,
+  memoryOrigin = null;
+function closeMemory(restoreFocus = true) {
+  clearTimeout(memoryTimer);
+  memoryTimer = null;
+  const popover = $("#memory-popover");
+  const hadFocus = popover.contains(document.activeElement);
+  setVisible("#memory-popover", false);
+  if (restoreFocus && hadFocus && memoryOrigin?.isConnected &&
+      !memoryOrigin.closest("[inert]") && memoryOrigin.getClientRects().length)
+    memoryOrigin.focus({ preventScroll: true });
+  memoryOrigin = null;
+}
 function showMemory(text) {
+  if (document.querySelector(".modal:not(.hidden)")) return;
+  closeMemory();
+  memoryOrigin = document.activeElement;
   $("#memory-text").textContent = text;
   setVisible("#memory-popover", true);
-  $("#memory-close").focus();
+  $("#memory-dismiss").focus({ preventScroll: true });
+  memoryTimer = setTimeout(closeMemory, 8000);
 }
-$("#memory-close").addEventListener("click", () => {
-  setVisible("#memory-popover", false);
-  $("#btn-letter").focus();
+$("#memory-close").addEventListener("click", () => closeMemory());
+$("#memory-dismiss").addEventListener("click", () => closeMemory());
+document.addEventListener("pointerdown", (event) => {
+  if (!$("#memory-popover").contains(event.target)) closeMemory(false);
+}, { capture: true });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("#memory-popover").classList.contains("hidden")) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeMemory();
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) closeMemory(false);
 });
 function showCard(animate = true) {
   setVisible("#btn-share", true);
@@ -490,7 +519,7 @@ async function presentGift(data, guest = false) {
   setVisible("#gift-dock", false);
   setVisible("#hud-bottom", false);
   setVisible("#counter", false);
-  setVisible("#memory-popover", false);
+  closeMemory(false);
   await cerrarModal($("#gift-modal"));
   setMode("preparando");
   setVisible("#preparing", true);

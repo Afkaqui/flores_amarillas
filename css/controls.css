@@ -1,4 +1,6 @@
 /* Shared control sizes and dialog layout. Loaded after decorative styles. */
+.memory-popover { z-index: 35; padding: 68px 24px 24px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.memory-timeout { display: block; margin-top: 12px; color: #8c806d; font-size: 12px; }
 .share-flower { display: block; color: #b99650; font-size: 36px; margin-bottom: 12px; }
 .share-note { margin-top: 24px; }
 .share-note textarea { background: #f5f7ef; min-height: 132px; line-height: 1.65; }

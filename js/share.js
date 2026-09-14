@@ -1,7 +1,7 @@
 import { normalizeGift } from "../shared/gift.js";
 export function mensajeParaCompartir(gift) {
   const name = normalizeGift(gift).para;
-  return `${name ? name + ", te" : "Te"} preparé unas flores 🌼\nHay unas palabras esperando por ti. Abre tu regalo cuando tengas un ratito 💛`;
+  return `${name ? name + ", te" : "Te"} preparé unas flores.\nHay unas palabras esperando por ti. Abre tu regalo cuando tengas un ratito.`;
 }
 export function enlaceWhatsApp(message, link) {
   const url = new URL(link);

@@ -60,12 +60,12 @@
       }
     </style>
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/controls.css?v=20260914-share-mobile" />
+    <link rel="stylesheet" href="/css/controls.css?v=20260914-memory-close" />
     <script type="importmap">
       {
         "imports": {
           "/js/garden.js": "/js/garden.js?v=20260914-share-mobile",
-          "/js/share.js": "/js/share.js?v=20260914-share-mobile",
+          "/js/share.js": "/js/share.js?v=20260914-memory-close",
           "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
           "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
           "animejs": "https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.es.js"
@@ -1053,12 +1053,14 @@
     <div id="preparing" class="preparing hidden" role="status">
       <span>✿</span> reuniendo un poquito de amor…
     </div>
-    <div id="memory-popover" class="memory-popover hidden" role="status">
-      <span>UNA FLOR, UNA RAZÓN</span>
+    <div id="memory-popover" class="memory-popover hidden" role="dialog" aria-labelledby="memory-heading" aria-describedby="memory-text">
+      <button type="button" class="modal-close" id="memory-dismiss" aria-label="Cerrar razón de la flor">×</button>
+      <span id="memory-heading">UNA FLOR, UNA RAZÓN</span>
       <p id="memory-text"></p>
       <button class="text-button" id="memory-close">
         Guardar en el corazón ♡
       </button>
+      <small class="memory-timeout">Se cierra en 8 segundos</small>
     </div>
 
     <div
@@ -1151,6 +1153,6 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="yt" aria-hidden="true"></div>
-    <script type="module" src="/js/main.js?v=20260914-share-mobile"></script>
+    <script type="module" src="/js/main.js?v=20260914-memory-close"></script>
   </body>
 </html>
