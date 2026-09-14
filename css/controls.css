@@ -1,0 +1,515 @@
+/* Shared control sizes and dialog layout. Loaded after decorative styles. */
+:root {
+  --control-height: 48px;
+  --control-radius: 12px;
+  --control-font: 16px;
+  --space-field: 20px;
+  --space-section: 24px;
+}
+.btn,
+.text-button,
+.gift-dock .btn,
+.gift-dock .text-button,
+.modal-actions .btn,
+.modal-actions .text-button {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--control-radius);
+  font-size: 14px;
+  line-height: 1.45;
+  gap: 8px;
+  white-space: normal;
+}
+.btn {
+  min-height: var(--control-height);
+}
+.btn-hud {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+.ambient-toggle {
+  min-height: 44px;
+  min-width: 44px;
+}
+.modal-actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.field-row {
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.field :is(input, textarea, select) {
+  min-width: 0;
+  max-width: 100%;
+}
+.card-top .modal-close {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #567650;
+  outline-offset: 2px;
+}
+.modal {
+  padding: clamp(12px, 2vw, 24px);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  container-type: inline-size;
+}
+.modal-card {
+  min-width: 0;
+  max-width: 100%;
+  max-height: 100%;
+  overscroll-behavior: contain;
+  padding: 32px;
+}
+.modal-card-sm {
+  padding-top: 64px;
+}
+.modal-close,
+#assistant-close,
+#draw-hide,
+#reply-cancel {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #dce1d6;
+  border-radius: 50%;
+  background: #f5f5ed;
+  color: #64735b;
+  font: 400 24px/1 var(--fuente-texto);
+}
+.modal-close {
+  top: 16px;
+  right: 16px;
+}
+.modal-close:hover,
+#assistant-close:hover,
+#draw-hide:hover,
+#reply-cancel:hover {
+  background: #e9eedf;
+}
+.creator {
+  width: min(1120px, 100%);
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 32px;
+  border-radius: 24px;
+}
+.creator-heading {
+  flex-shrink: 0;
+  padding-right: 48px;
+}
+.creator-heading .eyebrow {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+.creator-heading .modal-title {
+  font-size: clamp(28px, 3.2vw, 42px);
+  margin: 0 0 20px;
+}
+.creator-steps {
+  flex-shrink: 0;
+  gap: 24px;
+  margin: 0 0 20px;
+}
+.creator-steps button {
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 8px 0 12px;
+  gap: 8px;
+}
+.creator-steps button span {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
+.creator-layout {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #becbb5 transparent;
+  gap: 32px;
+  padding: 4px;
+  align-items: start;
+}
+.creator-content,
+.creator.letter-mode .creator-content,
+.creator.assistant-mode .creator-content {
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+.creator-step,
+.creator .field,
+.creator fieldset,
+.creator .field-row,
+.creator-preview {
+  min-width: 0;
+}
+.creator fieldset {
+  min-inline-size: 0;
+}
+.creator-step h3 {
+  font-size: 28px;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+.step-number {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+.step-description {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.creator .field {
+  margin: 0 0 var(--space-field);
+}
+.creator .field > span {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.creator
+  input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not(
+    [type="file"]
+  ),
+.creator select,
+.creator textarea,
+.reply-editor input:not([type="radio"]):not([type="checkbox"]),
+.reply-editor textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #d7dfd4;
+  border-radius: var(--control-radius);
+  background-color: #fffefa;
+  color: #34523e;
+  font-size: var(--control-font);
+  line-height: 1.5;
+}
+/* Single-line controls share an exact height; textareas keep their own rhythm. */
+.creator
+  input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not(
+    [type="file"]
+  ) {
+  height: var(--control-height);
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.creator select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%2364735b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 14px center;
+  background-repeat: no-repeat;
+  height: var(--control-height);
+  padding-right: 38px;
+}
+.creator textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.creator .photo-caption-field textarea {
+  min-height: 88px;
+}
+.creator .letter-paper textarea {
+  border: 0;
+  padding: 12px 0;
+  min-height: 210px;
+  font-size: 20px;
+}
+.creator .letter-paper {
+  margin-bottom: 20px;
+  padding: 20px;
+}
+.creator .letter-paper > span {
+  font-size: 19px;
+}
+.creator .assistant-selection textarea {
+  font-size: 18px;
+}
+.creator :is(input, textarea, select):focus-visible,
+.reply-editor :is(input, textarea):focus-visible {
+  outline-offset: -2px;
+  border-color: #567650;
+}
+.creator .field-row {
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.creator .letter-workspace {
+  gap: 28px;
+}
+.creator .btn,
+.creator .text-button,
+.creator .suggestions button,
+.creator .assistant-followups button,
+.creator .drawing-starters button,
+.creator .drawing-tools > button,
+.reply-editor .btn,
+.reply-editor .text-button {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  border-radius: var(--control-radius);
+  gap: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.creator .btn {
+  min-height: var(--control-height);
+}
+.creator :is(.complice-invite, .detail-card summary, .reply-choice) {
+  padding: 16px;
+  gap: 12px;
+}
+.creator .complice-invite > span,
+.creator .assistant-title > div {
+  min-width: 0;
+}
+.creator .complice-invite b,
+.creator .detail-card summary b {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.creator .complice-invite small,
+.creator .detail-card summary small {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.creator .complice-mark,
+.creator .detail-icon {
+  flex-shrink: 0;
+}
+.creator .draw-invite {
+  padding: 16px;
+  margin: 20px 0;
+}
+.creator .draw-invite p {
+  margin: 6px 0 0;
+}
+.creator :is(.drawing-tools, .suggestions, .assistant-followups) {
+  gap: 8px;
+}
+.creator .drawing-tools {
+  align-items: center;
+}
+.creator #ink-colors .ink {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-width: 10px;
+}
+.creator :is(.photo-remove, .drawn-flower button) {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+.creator .drawn-flower .drawing-edit {
+  width: auto;
+  height: auto;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+.creator #draw-note {
+  font-size: 20px;
+}
+.creator #draw-hide,
+.creator #assistant-close {
+  padding: 0;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.creator .creator-footer {
+  position: static;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 20px 0 0;
+  padding: 16px 0 0;
+  background: #fffcf7;
+}
+.creator-footer .draft-note {
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 260px;
+  margin: 0 auto 0 0;
+}
+.creator-preview {
+  padding: 28px 20px 20px;
+}
+.creator-preview .preview-name {
+  font-size: 26px;
+}
+.creator-preview .preview-caption {
+  font-size: 22px;
+  margin: 12px 0 0;
+}
+
+@container (max-width: 760px) {
+  .creator {
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .creator-heading .modal-title {
+    font-size: 30px;
+  }
+  .creator-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .creator-content {
+    width: 100%;
+  }
+  .creator-preview {
+    display: none;
+  }
+  .creator .letter-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .creator .assistant-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .creator-steps {
+    gap: 16px;
+  }
+  .creator-steps button {
+    flex: 1;
+    font-size: 13px;
+  }
+  .creator .creator-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+}
+@container (max-width: 440px) {
+  .creator {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .creator .modal-close {
+    top: 12px;
+    right: 12px;
+  }
+  .creator-heading .eyebrow {
+    font-size: 10px;
+    max-width: 220px;
+  }
+  .creator-heading .modal-title {
+    font-size: 27px;
+    margin-bottom: 16px;
+  }
+  .creator-steps {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .creator-steps button {
+    font-size: 12px;
+    gap: 5px;
+  }
+  .creator-steps button span {
+    flex-basis: 24px;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  .creator-step h3 {
+    font-size: 25px;
+  }
+  .creator .field-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .creator .creator-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .creator-footer .draft-note {
+    grid-column: 1 / -1;
+    max-width: none;
+    font-size: 11px;
+  }
+  .creator-footer :is(.btn, .text-button) {
+    width: 100%;
+    padding: 10px;
+  }
+  .creator .draw-invite {
+    flex-wrap: wrap;
+  }
+  .creator .draw-invite > span {
+    display: none;
+  }
+  .creator .draw-invite .btn {
+    margin: 0;
+  }
+  .creator .drawing-editor {
+    padding: 14px;
+  }
+  .creator .drawing-starters {
+    gap: 6px;
+  }
+  .creator .drawing-starters button {
+    padding: 8px 10px;
+  }
+  .creator .drawing-heading b {
+    font-size: 19px;
+  }
+}
+@media (max-height: 650px) {
+  .creator {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .creator-heading .modal-title {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .creator-heading .eyebrow {
+    display: none;
+  }
+  .creator-steps {
+    margin-bottom: 12px;
+  }
+  .creator .creator-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+}

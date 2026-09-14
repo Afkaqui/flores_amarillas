@@ -65,7 +65,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       const h = $(`[data-panel="${step}"] h3`);
       h.tabIndex = -1;
       h.focus({ preventScroll: true });
-      $(".creator-content").scrollTop = 0;
+      $(".creator-layout").scrollTop = 0;
     }
   }
   document

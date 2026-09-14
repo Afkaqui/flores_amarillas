@@ -30,3 +30,10 @@ Pendiente del plan general: revisión en dispositivo móvil real, grabación com
 - Después de los cambios en dibujos, 14 pruebas focalizadas pasan (esquema, enlaces, propuestas, OpenGraph y renderizado de las tres plantillas). La revisión anterior de medios incluyó 15 pruebas con API y PostgreSQL, todas correctas.
 
 No se ha desplegado esta revisión al VPS. Siguen pendientes las comprobaciones generales de dispositivo móvil real, escucha y regresión de rendimiento indicadas arriba.
+
+## Consistencia de controles y límites del creador
+
+- `css/controls.css` centraliza alturas, tipografía, foco, radios, separación y tamaños de cierre. Inputs y selects de 48 px; acciones secundarias y cierres con área de 44 px. El foco de los campos queda dentro del borde.
+- El ancho del modal se calcula sobre su espacio disponible, descontando los márgenes. La zona central es la única que se desplaza; el encabezado y las acciones permanecen accesibles. Cambiar de paso vuelve al inicio de esa zona.
+- BrowserOS: los tres pasos no presentan desbordamiento horizontal con contenedores de 320, 390, 768 y 1024 px. Con dibujo y asistente abiertos, comprobados límites y pie accesible en 390 × 844, 320 × 568 y 768 × 500. Cierres medidos en 44 × 44; campos y select en 48 px. Estas medidas de contenedor no sustituyen una prueba en teléfono físico.
+- Se restauró el tamaño normal tras la revisión; no se añadieron pantallas ni vistas superpuestas al producto.
