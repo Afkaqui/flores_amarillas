@@ -48,7 +48,11 @@ const writeStorage = (key, data) => {
   }
 };
 const received = leerRegalo();
-let current = normalizeGift(readStorage(DRAFT) || { semilla: Math.random() });
+let current = normalizeGift({
+  permitirRespuesta: true,
+  semilla: Math.random(),
+  ...readStorage(DRAFT),
+});
 let role = received ? "invitado" : "autor",
   mode = "intro",
   busy = false,
