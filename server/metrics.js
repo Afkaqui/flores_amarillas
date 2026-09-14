@@ -211,7 +211,12 @@ export function routeGroup(path) {
   return "other";
 }
 export function httpMetrics(req, res, next) {
-  if (req.path === "/api/metricas/eventos") return next();
+  if (
+    req.path === "/api/metricas/eventos" ||
+    req.path === "/metrics" ||
+    req.path.startsWith("/metrics/")
+  )
+    return next();
   const started = performance.now(),
     group = routeGroup(req.path);
   let sent = 0;

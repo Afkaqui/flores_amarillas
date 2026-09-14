@@ -34,7 +34,7 @@ test("admin HTML, metrics and export data require login; logout revokes the sess
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   const origin = "http://127.0.0.1:" + server.address().port;
   const post = (route, body = {}, headers = {}) =>
-    fetch(origin + route, {
+    fetch(origin + "/metrics" + route, {
       method: "POST",
       headers: {
         Origin: origin,
@@ -44,10 +44,10 @@ test("admin HTML, metrics and export data require login; logout revokes the sess
       body: JSON.stringify(body),
     });
   try {
-    const login = await fetch(origin + "/");
-    assert.match(await login.text(), /Tu espacio privado/);
-    assert.equal((await fetch(origin + "/api/metrics")).status, 401);
-    assert.equal((await fetch(origin + "/dashboard.js")).status, 401);
+    const login = await fetch(origin + "/metrics");
+    assert.match(await login.text(), /Métricas del proyecto/);
+    assert.equal((await fetch(origin + "/metrics/api/metrics")).status, 401);
+    assert.equal((await fetch(origin + "/metrics/dashboard.js")).status, 401);
     assert.equal(queries, 0);
     assert.equal(
       (await post("/login", { key }, { Origin: "http://127.0.0.1:5183" }))
@@ -60,10 +60,11 @@ test("admin HTML, metrics and export data require login; logout revokes the sess
     const header = ok.headers.get("set-cookie"),
       cookie = header.split(";")[0];
     assert.match(header, /HttpOnly/);
+    assert.match(header, /Path=\/metrics;/);
     assert.match(header, /SameSite=Strict/);
     assert.match(header, /Max-Age=1800/);
     assert.ok(!cookie.includes(key));
-    const data = await fetch(origin + "/api/metrics", {
+    const data = await fetch(origin + "/metrics/api/metrics", {
       headers: { Cookie: cookie },
     });
     assert.deepEqual(await data.json(), { privateCount: 42 });
@@ -71,22 +72,27 @@ test("admin HTML, metrics and export data require login; logout revokes the sess
     assert.equal(data.headers.get("cache-control"), "no-store");
     assert.equal(
       (
-        await fetch(origin + "/api/metrics", {
+        await fetch(origin + "/metrics/api/metrics", {
           headers: { Cookie: cookie, Origin: "http://evil.example" },
         })
       ).status,
       403,
     );
     assert.match(
-      await (await fetch(origin + "/", { headers: { Cookie: cookie } })).text(),
+      await (
+        await fetch(origin + "/metrics", { headers: { Cookie: cookie } })
+      ).text(),
       /Lo que está floreciendo/,
     );
     const out = await post("/logout", {}, { Cookie: cookie });
     assert.equal(out.status, 204);
     assert.match(out.headers.get("set-cookie"), /Max-Age=0/);
     assert.equal(
-      (await fetch(origin + "/api/metrics", { headers: { Cookie: cookie } }))
-        .status,
+      (
+        await fetch(origin + "/metrics/api/metrics", {
+          headers: { Cookie: cookie },
+        })
+      ).status,
       401,
     );
   } finally {

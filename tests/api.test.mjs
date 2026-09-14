@@ -23,6 +23,8 @@ test(
       STATIC_ROOT: path.resolve("."),
       OPENCODE_GO_API_KEY: "",
       AGENT_CONNECT_SECRET: "",
+      METRICS_ADMIN_KEY: "test-admin-key-".repeat(4),
+      METRICS_PORT: "0",
     };
     let child;
     const ids = [];
@@ -77,6 +79,15 @@ test(
     }
     try {
       await start();
+      const home = await api("/");
+      const homeHtml = await home.text();
+      assert.equal(home.status, 200);
+      assert.match(homeHtml, /Hay personas/);
+      assert.ok(!homeHtml.includes("Tu clave de acceso"));
+      const metrics = await api("/metrics");
+      assert.equal(metrics.status, 200);
+      assert.match(await metrics.text(), /Tu clave de acceso/);
+      assert.equal((await api("/metrics/api/metrics")).status, 401);
       const a = await newSession(),
         b = await newSession();
       assert.equal(

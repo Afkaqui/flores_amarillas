@@ -9,7 +9,10 @@ import { promisify } from "node:util";
 const derive = promisify(scrypt);
 const digest = (value) => createHash("sha256").update(value).digest("hex");
 const lifetime = 30 * 60 * 1000;
-export function metricsAuth(key = process.env.METRICS_ADMIN_KEY) {
+export function metricsAuth(
+  key = process.env.METRICS_ADMIN_KEY,
+  { secure = false } = {},
+) {
   if (typeof key !== "string" || !/^[A-Za-z0-9_-]{43,128}$/.test(key))
     throw new Error(
       "Configura una clave aleatoria de métricas con el generador local.",
@@ -25,7 +28,7 @@ export function metricsAuth(key = process.env.METRICS_ADMIN_KEY) {
       /(?:^|;\s*)flores_metrics_admin=([a-f0-9]{64})(?:;|$)/,
     )?.[1];
   const cookie = (value, age) =>
-    `flores_metrics_admin=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}`;
+    `flores_metrics_admin=${value}; Path=/metrics; HttpOnly; SameSite=Strict; Max-Age=${age}${secure ? "; Secure" : ""}`;
   return {
     authenticated(req) {
       const value = token(req);

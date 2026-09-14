@@ -1,3 +1,4 @@
+import { createTrafficGuard } from "./traffic.js";
 import {
   httpMetrics,
   registerMetricEvents,
@@ -5,7 +6,10 @@ import {
   startMetrics,
   stopMetrics,
 } from "./metrics.js";
-import { startMetricsDashboard } from "./metrics-admin.js";
+import {
+  createMetricsHandler,
+  startMetricsDashboard,
+} from "./metrics-admin.js";
 import express from "express";
 import { normalizeGift, OCCASIONS } from "../shared/gift.js";
 import path from "node:path";
@@ -42,6 +46,15 @@ app.disable("x-powered-by");
 // así que su X-Forwarded-For sí es de fiar.
 app.set("trust proxy", 1);
 app.use(httpMetrics);
+app.use(createTrafficGuard());
+try {
+  app.use("/metrics", createMetricsHandler({ origin: ORIGEN }));
+} catch {
+  // Missing admin configuration must never lock visitors out of their flowers.
+  app.use("/metrics", (_req, res) =>
+    res.status(503).send("Panel privado no configurado."),
+  );
+}
 registerFeatures(app);
 registerMetricEvents(app);
 app.use(express.json({ limit: "256kb" }));
@@ -59,8 +72,7 @@ function nuevoId(largo = 7) {
 }
 
 const ipDe = (req) => {
-  const cf = req.get("cf-connecting-ip");
-  const ip = cf || req.ip || "";
+  const ip = req.ip || "";
   return ip.replace(/^::ffff:/, "") || null;
 };
 
@@ -126,7 +138,10 @@ app.get("/api/regalos/:id", async (req, res) => {
 /* ============================================================
    Imagen de vista previa
    ============================================================ */
+let activePreviews = 0;
 app.get("/og/portada.png", async (_req, res) => {
+  if (activePreviews >= 2) return res.set("Retry-After", "3").status(429).end();
+  activePreviews++;
   try {
     const png = await pngDePortada();
     res.type("png");
@@ -135,10 +150,14 @@ app.get("/og/portada.png", async (_req, res) => {
   } catch (err) {
     console.error("[GET /og/portada]", err.message);
     res.status(500).end();
+  } finally {
+    activePreviews--;
   }
 });
 
 app.get("/og/:id.png", async (req, res) => {
+  if (activePreviews >= 2) return res.set("Retry-After", "3").status(429).end();
+  activePreviews++;
   try {
     const r = await leerRegalo(req.params.id);
     if (!r) return res.status(404).end();
@@ -149,6 +168,8 @@ app.get("/og/:id.png", async (req, res) => {
   } catch (err) {
     console.error("[GET /og]", err.message);
     res.status(500).end();
+  } finally {
+    activePreviews--;
   }
 });
 
@@ -282,6 +303,11 @@ const dashboard = startMetricsDashboard();
 const server = app.listen(PUERTO, "0.0.0.0", () => {
   console.log(`[flores] escuchando en :${PUERTO} — origen ${ORIGEN}`);
 });
+
+server.requestTimeout = 60000;
+server.headersTimeout = 15000;
+server.keepAliveTimeout = 5000;
+server.maxHeadersCount = 50;
 
 let shuttingDown = false;
 for (const signal of ["SIGTERM", "SIGINT"])

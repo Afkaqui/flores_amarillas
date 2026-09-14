@@ -13,7 +13,8 @@ WORKDIR /app/server
 COPY server/package.json server/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 
-COPY server/*.js ./
+COPY server/*.js server/*.html ./
+COPY server/scripts/ ./scripts/
 COPY shared/ /app/shared/
 COPY shared/ ./public/shared/
 COPY index.html ./public/index.html

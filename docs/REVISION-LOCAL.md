@@ -53,3 +53,15 @@ Esta revisión sigue siendo local; no se desplegó al VPS. Se mantienen las limi
 - Por decisión del propietario, se protege el acceso al panel y se conserva el almacenamiento habitual de PostgreSQL, sin cifrado adicional. Los contadores locales se conservan.
 - Pruebas específicas de autenticación, origen, exportación protegida, revocación y caducidad. La pantalla de entrada permite introducir la clave sin alertas nativas.
 - Ningún cambio de este bloque se desplegó al VPS.
+
+## Ruta administrativa separada
+
+- `/` abre el jardín sin clave. `/metrics` es la única entrada al panel privado, dentro del mismo sitio; su API y sus recursos permanecen protegidos. No aparece un enlace administrativo en el jardín.
+- El acceso incluye «Volver a las flores». La cookie administrativa queda limitada al path `/metrics`. Los marcadores antiguos del puerto local 5184 redirigen al jardín, sin mostrar un login en su raíz.
+- Siete pruebas focalizadas de API y métricas pasan: incluyen jardín público, entrada privada, rechazo de consultas anónimas, autenticación y caducidad.
+
+## Preparación del despliegue autorizado
+
+El propietario autorizó desplegar después de revisar límites de consultas. Se añadieron límites por IP, globales y de concurrencia, respuestas 429 con Retry-After y límites de tiempo en Node/PostgreSQL. Nginx tiene límites exclusivos de este sitio y reconoce la IP del visitante sólo desde rangos oficiales de Cloudflare. Las pruebas de ráfagas son locales, sin pruebas de carga contra producción.
+
+La suite completa pasó 26 pruebas; tras endurecer los cupos de conversiones se repitieron las ocho pruebas afectadas de API, tráfico y acceso administrativo, todas correctas. Se construyó la imagen Docker con los HTML administrativos incluidos.

@@ -7,7 +7,7 @@ document.querySelector("#login").addEventListener("submit", async (event) => {
   button.textContent = "Comprobando tu clave…";
   status.textContent = "";
   try {
-    const response = await fetch("/login", {
+    const response = await fetch("/metrics/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key: field.value }),
@@ -15,7 +15,7 @@ document.querySelector("#login").addEventListener("submit", async (event) => {
     });
     field.value = "";
     if (response.ok) {
-      location.replace("/");
+      location.replace("/metrics");
       return;
     }
     const data = await response.json();

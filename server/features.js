@@ -15,6 +15,7 @@ export const MEDIA_ROOT = path.resolve(
 );
 const sessions = new Map();
 let active = 0;
+let activeUploads = 0;
 const allowedOrigin = process.env.ORIGEN;
 export function sameOrigin(req, res, next) {
   const origin = req.get("origin");
@@ -278,6 +279,14 @@ export function registerFeatures(app) {
     requireSession,
     express.raw({ type: () => true, limit: "10mb" }),
     async (req, res) => {
+      if (activeUploads >= 2)
+        return res
+          .set("Retry-After", "3")
+          .status(429)
+          .json({
+            error: "Estamos preparando otros archivos. Espera un momento.",
+          });
+      activeUploads++;
       const owner = req.flowerSession.id;
       let temp;
       try {
@@ -386,6 +395,7 @@ export function registerFeatures(app) {
         });
       } finally {
         if (temp) await unlink(temp).catch(() => {});
+        activeUploads--;
       }
     },
   );

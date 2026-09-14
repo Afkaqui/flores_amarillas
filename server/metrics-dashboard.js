@@ -57,9 +57,9 @@ async function refresh() {
   q("#refresh").disabled = true;
   q("#status").textContent = "Consultando actividad…";
   try {
-    const r = await fetch("/api/metrics?days=" + q("#days").value);
+    const r = await fetch("/metrics/api/metrics?days=" + q("#days").value);
     if (r.status === 401) {
-      location.replace("/");
+      location.replace("/metrics");
       return;
     }
     if (!r.ok) throw new Error();
@@ -197,10 +197,10 @@ setInterval(() => {
 
 document.querySelector("#logout").onclick = async () => {
   try {
-    const r = await fetch("/logout", { method: "POST" });
+    const r = await fetch("/metrics/logout", { method: "POST" });
     if (!r.ok) throw new Error();
     latest = null;
-    location.replace("/");
+    location.replace("/metrics");
   } catch {
     q("#status").textContent =
       "No se pudo cerrar la sesión. Inténtalo otra vez.";
