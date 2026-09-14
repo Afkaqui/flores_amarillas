@@ -1,0 +1,3 @@
+# Copiar a deploy/servidor.local y completar. Ese archivo está ignorado por git.
+VPS=usuario@servidor
+DOMINIO=amarillas.pascare.tech

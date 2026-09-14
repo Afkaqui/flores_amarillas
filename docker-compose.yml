@@ -1,0 +1,23 @@
+services:
+  flores-amarillas:
+    build: .
+    container_name: flores_amarillas
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - ORIGEN=${ORIGEN:-https://amarillas.pascare.tech}
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      # Sólo en la puerta de enlace de Docker: nginx_proxy llega por ahí
+      # (host.docker.internal -> 10.200.0.1) y el puerto no queda abierto a
+      # internet. La IP va en variable por si docker0 cambia de subred.
+      - "${BIND_IP:-10.200.0.1}:${PUERTO:-3061}:3000"
+    networks:
+      - default
+      - postgresql_default
+
+networks:
+  postgresql_default:
+    external: true

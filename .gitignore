@@ -1,0 +1,17 @@
+# Credenciales del VPS y de la base: nunca al repositorio.
+.env
+.env.*
+!deploy/.env.example
+
+node_modules/
+server/node_modules/
+npm-debug.log*
+
+# Scratch
+prueba_*.html
+*.log
+.DS_Store
+Thumbs.db
+
+# Datos del servidor para el despliegue (no van al repositorio)
+deploy/servidor.local

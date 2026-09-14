@@ -1,0 +1,16 @@
+{
+  "name": "flores-amarillas-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Enlaces cortos y vista previa de los ramos de Flores Amarillas",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "sharp": "^0.33.5"
+  }
+}

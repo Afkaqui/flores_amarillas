@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Flores Amarillas · 21 de Septiembre</title>
+<meta name="description" content="Siembra tu jardín y regala flores amarillas este 21 de septiembre." />
+<meta name="theme-color" content="#F2A007" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Flores Amarillas · 21 de Septiembre" />
+<meta property="og:description" content="Siembra tu jardín y regala flores amarillas. Es 21 de septiembre." />
+<meta property="og:url" content="https://amarillas.pascare.tech/" />
+<meta property="og:image" content="https://amarillas.pascare.tech/og/portada.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌼</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* Colchón mínimo por si la hoja de estilos tarda o falla: sin esto se ven
+     todas las capas (intro, HUD, modales) apiladas y sin estilo. */
+  html, body { margin: 0; height: 100%; background: #bfe3f5; overflow: hidden; }
+  .hidden { display: none !important; }
+  .modal, .screen { position: fixed; inset: 0; }
+  #loader { background: linear-gradient(170deg, #FFF3CF, #F7D77A); z-index: 60; }
+</style>
+<link rel="stylesheet" href="/css/styles.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+    "animejs": "https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.es.js"
+  }
+}
+</script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div id="petal-layer" aria-hidden="true"></div>
+
+  <!-- LOADER -->
+  <div id="loader" class="screen">
+    <div class="loader-flower" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><i></i>
+    </div>
+    <p class="loader-text">preparando el jardín…</p>
+  </div>
+
+  <!-- INTRO -->
+  <section id="intro" class="screen hidden">
+    <div class="intro-inner">
+      <p class="eyebrow"><span class="dot"></span> 21 de septiembre · primavera</p>
+      <h1 class="title" data-split>Flores Amarillas</h1>
+      <p class="lede">
+        Un jardín que crece contigo. Siembra, mira florecer y arma un ramo
+        para regalarlo a quien quieras — con tu mensaje adentro.
+      </p>
+      <div class="intro-actions">
+        <button id="btn-enter" class="btn btn-primary">Entrar al jardín</button>
+        <button id="btn-how" class="btn btn-ghost">¿Cómo funciona?</button>
+      </div>
+      <p class="hint-small">Con música 🎵 · arrastra para mirar alrededor · anda en el celular</p>
+    </div>
+  </section>
+
+  <!-- HUD -->
+  <header id="hud-top" class="hud hidden">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <g fill="url(#petalo)">
+            <ellipse cx="16" cy="6.6" rx="4.1" ry="6.1" />
+            <ellipse cx="16" cy="25.4" rx="4.1" ry="6.1" />
+            <ellipse cx="6.6" cy="16" rx="6.1" ry="4.1" />
+            <ellipse cx="25.4" cy="16" rx="6.1" ry="4.1" />
+            <ellipse cx="9.4" cy="9.4" rx="4" ry="5.6" transform="rotate(-45 9.4 9.4)" />
+            <ellipse cx="22.6" cy="9.4" rx="4" ry="5.6" transform="rotate(45 22.6 9.4)" />
+            <ellipse cx="9.4" cy="22.6" rx="4" ry="5.6" transform="rotate(45 9.4 22.6)" />
+            <ellipse cx="22.6" cy="22.6" rx="4" ry="5.6" transform="rotate(-45 22.6 22.6)" />
+          </g>
+          <circle cx="16" cy="16" r="5.1" fill="#8A5A17" />
+          <circle cx="14.4" cy="14.4" r="1.7" fill="#B5822C" />
+          <defs>
+            <linearGradient id="petalo" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#FFE58A" />
+              <stop offset="1" stop-color="#F2A007" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+      <span class="brand-text">Flores<strong>Amarillas</strong></span>
+    </div>
+    <div class="hud-derecha">
+      <button class="btn-hud btn-musica" id="btn-sound" aria-label="Música" title="Música">
+        <span class="ecualizador" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="musica-off" aria-hidden="true">♪</span>
+      </button>
+      <button class="btn-hud btn-vista" id="btn-view" aria-pressed="false"
+              aria-label="Fijar la vista" title="Fijar la vista (F)">
+        <svg class="ico-girando" viewBox="0 0 24 24" width="19" height="19" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+          <path d="M20.6 3.7v4.6h-4.6" />
+        </svg>
+        <svg class="ico-fija" viewBox="0 0 24 24" width="19" height="19" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M12 16.5V22" />
+          <path d="M8.6 2.6h6.8l-1.1 6.6 3 3.1v2.2H6.7v-2.2l3-3.1-1.1-6.6z" />
+        </svg>
+      </button>
+      <div class="counter" id="counter">
+        <span class="counter-num" id="counter-num">0</span>
+        <span class="counter-label">flores sembradas</span>
+      </div>
+    </div>
+  </header>
+
+  <footer id="hud-bottom" class="hud hidden">
+    <p class="tip" id="tip">Toca el pasto para sembrar una flor</p>
+    <div class="toolbar">
+      <button class="btn btn-soft" id="btn-seed">Sembrar 5 <span aria-hidden="true">✿</span></button>
+      <button class="btn btn-primary" id="btn-gift">Regalar un ramo</button>
+      <button class="btn btn-icon" id="btn-reset" title="Reiniciar jardín" aria-label="Reiniciar jardín">↺</button>
+    </div>
+  </footer>
+
+  <!-- MODAL REGALO -->
+  <div id="gift-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="gift-title">
+    <div class="modal-card">
+      <button class="modal-close" id="gift-close" aria-label="Cerrar">✕</button>
+      <p class="eyebrow small"><span class="dot"></span> armar el ramo</p>
+      <h2 id="gift-title" class="modal-title">¿Para quién son estas flores?</h2>
+
+      <label class="field">
+        <span>Para</span>
+        <input id="f-to" type="text" maxlength="28" placeholder="Su nombre" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>Tu mensaje</span>
+        <textarea id="f-msg" maxlength="180" rows="3" placeholder="Porque hoy florece todo, y me acordé de ti."></textarea>
+        <em class="count"><span id="f-msg-count">0</span>/180</em>
+      </label>
+
+      <label class="field">
+        <span>De parte de</span>
+        <input id="f-from" type="text" maxlength="28" placeholder="Tu nombre" autocomplete="off" />
+      </label>
+
+      <label class="field field-range">
+        <span>Tamaño del ramo · <b id="f-size-val">12</b> flores</span>
+        <input id="f-size" type="range" min="3" max="24" value="12" />
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="gift-cancel">Cancelar</button>
+        <button class="btn btn-primary" id="gift-submit">Armar el ramo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETA / RESULTADO -->
+  <div id="card-layer" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-seal">🌼</span>
+        <p class="card-date">21 de septiembre</p>
+      </div>
+      <h2 class="card-to">Para <b id="c-to">ti</b></h2>
+      <p class="card-msg" id="c-msg"></p>
+      <p class="card-from">— <span id="c-from">alguien que te quiere</span></p>
+      <div class="card-actions" id="card-actions">
+        <button class="btn btn-primary" id="btn-copy">Copiar enlace del regalo</button>
+        <button class="btn btn-ghost" id="btn-back">Volver al jardín</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVELADO (cuando llegas por un enlace) -->
+  <section id="reveal" class="screen hidden">
+    <div class="reveal-inner">
+      <p class="eyebrow"><span class="dot"></span> te llegó un regalo</p>
+      <h1 class="title reveal-title">Alguien te mandó<br />flores amarillas</h1>
+      <p class="lede" id="reveal-sub">Ábrelas. Es 21 de septiembre.</p>
+      <button id="btn-open" class="btn btn-primary btn-lg">Abrir el ramo</button>
+    </div>
+  </section>
+
+  <!-- AYUDA -->
+  <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card-sm">
+      <button class="modal-close" id="help-close" aria-label="Cerrar">✕</button>
+      <h2 class="modal-title">Cómo funciona</h2>
+      <ol class="steps">
+        <li><b>Siembra.</b> Toca el pasto y una flor amarilla crece donde marcaste.</li>
+        <li><b>Mira.</b> Arrastra para girar la cámara y usa la rueda para acercarte.</li>
+        <li><b>Regala.</b> Arma un ramo con tu mensaje y comparte el enlace.</li>
+        <li><b>¿Te marea el giro?</b> El botón 📌 del HUD (o la tecla <b>F</b>)
+            fija la vista y la cámara deja de girar sola.</li>
+      </ol>
+      <p class="muted">Quien abra el enlace verá su ramo florecer con tu dedicatoria.</p>
+      <div class="modal-actions"><button class="btn btn-primary" id="help-ok">Entendido</button></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div id="yt" aria-hidden="true"></div>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

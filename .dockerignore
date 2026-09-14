@@ -1,0 +1,6 @@
+.env
+.claude/
+deploy/*.md
+README.md
+Dockerfile
+docker-compose.yml
