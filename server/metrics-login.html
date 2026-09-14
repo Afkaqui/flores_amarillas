@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+  <title>Acceso privado · Flores Amarillas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f6f7f1;
+      color: #304a39;
+      font:
+        16px/1.6 system-ui,
+        sans-serif;
+    }
+    main {
+      width: min(100%, 440px);
+      padding: 36px;
+      background: #fffdf8;
+      border: 1px solid #dce1d5;
+      border-radius: 24px;
+      box-shadow: 0 16px 50px #304a3910;
+    }
+    h1 {
+      font:
+        34px/1.15 Georgia,
+        serif;
+      margin: 16px 0;
+    }
+    p {
+      color: #6d7c69;
+    }
+    small {
+      letter-spacing: 0.16em;
+      font-size: 11px;
+    }
+    label {
+      display: block;
+      margin: 24px 0 8px;
+    }
+    input,
+    button {
+      font: inherit;
+      width: 100%;
+      min-height: 48px;
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    input {
+      border: 1px solid #cdd6c7;
+      background: #fff;
+      color: inherit;
+      min-width: 0;
+    }
+    button {
+      border: 0;
+      background: #365640;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+    input:focus-visible,
+    button:focus-visible {
+      outline: 2px solid #9baa86;
+      outline-offset: 3px;
+    }
+    #status {
+      min-height: 28px;
+      font-size: 14px;
+      color: #9b4451;
+      margin: 12px 0 0;
+    }
+    @media (max-width: 400px) {
+      main {
+        padding: 24px;
+      }
+      h1 {
+        font-size: 30px;
+      }
+    }
+  </style>
+  <main>
+    <small>FLORES AMARILLAS · SOLO PARA TI</small>
+    <h1>Tu espacio privado.</h1>
+    <p>Introduce tu clave para consultar cómo está floreciendo el proyecto.</p>
+    <form id="login">
+      <label for="key">Tu clave de acceso</label
+      ><input
+        id="key"
+        name="key"
+        type="password"
+        autocomplete="current-password"
+        required
+        maxlength="128"
+        spellcheck="false"
+        autocapitalize="off"
+      /><button id="submit" type="submit">Entrar a mis métricas</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+  <script src="/login.js"></script>
+</html>

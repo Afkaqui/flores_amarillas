@@ -35,7 +35,8 @@ En modo estático los regalos de texto usan enlaces con hash; los dibujos que ex
 npm ci --prefix server
 # Preparar server/public con index.html y las carpetas css/, js/ y shared/.
 # También se puede indicar una carpeta de assets mediante STATIC_ROOT.
-DATABASE_URL=postgresql://... PORT=3000 ORIGEN=http://localhost:3000 node server/index.js
+node server/scripts/setup-metrics.mjs .env
+DATABASE_URL=postgresql://... PORT=3000 ORIGEN=http://localhost:3000 node --env-file=.env server/index.js
 ```
 
 `STATIC_ROOT` solo debe apuntar a la carpeta de assets públicos, no a una carpeta con credenciales. En desarrollo los assets llevan `no-store`; en producción, caché corta con revalidación.
@@ -77,7 +78,7 @@ El ajuste de movimiento reducido evita vuelos de cámara, caída de pétalos y e
 node --test tests/gift.test.mjs tests/og.test.mjs tests/v2.test.mjs
 node server/seguro.test.mjs
 # Usar exclusivamente una base de pruebas:
-DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --test tests/database.test.mjs tests/api.test.mjs tests/metrics.test.mjs
+DATABASE_URL=postgresql://... FLORES_TEST_DB=1 node --env-file=.env --test tests/database.test.mjs tests/api.test.mjs tests/metrics.test.mjs tests/metrics-security.test.mjs
 ```
 
 Se comprueban compatibilidad, Unicode, validación, enlace de respaldo ante error/timeout, privacidad y rasterización de OpenGraph, persistencia en PostgreSQL y escapes HTML/JSON. La prueba de base elimina únicamente las filas con IDs aleatorios que ella misma crea.
@@ -114,4 +115,4 @@ El asistente muestra una espera animada y tres tarjetas con entrada escalonada. 
 
 El backend registra actividad y volumen en PostgreSQL: visitas, pasos del creador, regalos, aperturas, respuestas, postales, asistente, subidas, peticiones, errores y tiempos. No utiliza un servicio externo ni incorpora textos, nombres o archivos en las métricas.
 
-Para abrir el panel local, añade `METRICS_PORT=5184` al comando de arranque y entra en `http://127.0.0.1:5184`. El panel escucha únicamente en loopback y está desactivado por defecto; la recogida sigue funcionando sin él. Incluye periodos y descarga JSON. Consulta [la guía de métricas](docs/METRICAS.md) para definiciones, límites y consulta por CLI.
+Para abrir el panel local, añade `METRICS_PORT=5184` al comando de arranque y entra en `http://127.0.0.1:5184`. El panel escucha únicamente en loopback y exige `METRICS_ADMIN_KEY`, generada en tu `.env` local; no hay acceso anónimo a datos ni exportaciones. El generador prepara la clave sin mostrarla y no sustituye la existente. El panel está desactivado por defecto; la recogida sigue funcionando sin él. Incluye periodos, cierre de sesión y descarga JSON. Consulta [la guía de métricas](docs/METRICAS.md) para definiciones, límites y consulta por CLI.

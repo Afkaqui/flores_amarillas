@@ -46,3 +46,10 @@ No se ha desplegado esta revisión al VPS. Siguen pendientes las comprobaciones 
 - La suite con base aislada suma 19 pruebas correctas. La revisión de BrowserOS comprobó que el modo asistente no deja visibles los otros pasos ni el botón Continuar; también se inspeccionó el panel local.
 
 Esta revisión sigue siendo local; no se desplegó al VPS. Se mantienen las limitaciones de dispositivo físico, escucha y regresión general indicadas anteriormente.
+
+## Acceso privado a métricas
+
+- Panel protegido por clave aleatoria, sin acceso anónimo al dashboard ni su API. Inicio y cierre de sesión integrados, caducidad de 30 minutos, límites de intentos y cookies HttpOnly/SameSite=Strict. Clave generada sólo en `.env` local con permisos 600; no se publica.
+- Por decisión del propietario, se protege el acceso al panel y se conserva el almacenamiento habitual de PostgreSQL, sin cifrado adicional. Los contadores locales se conservan.
+- Pruebas específicas de autenticación, origen, exportación protegida, revocación y caducidad. La pantalla de entrada permite introducir la clave sin alertas nativas.
+- Ningún cambio de este bloque se desplegó al VPS.

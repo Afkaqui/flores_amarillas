@@ -1,20 +1,36 @@
 # Métricas de Flores Amarillas
 
-La medición comienza al arrancar esta versión del backend. No reconstruye visitas anteriores. Los datos se guardan en la misma base PostgreSQL, en tablas independientes de regalos.
+La medición comienza al arrancar esta versión del backend. No reconstruye visitas anteriores. Los datos se guardan en la misma base PostgreSQL, separados de los regalos.
 
 ## Consultar
 
-Añade `METRICS_PORT=5184` al entorno del proceso que ejecuta `node server/index.js`. El panel se abre en `http://127.0.0.1:5184`; permite consultar hoy, 7, 30, 90 o 365 días, actualizar y descargar JSON. Se actualiza cada 30 segundos mientras la pestaña está visible.
+Prepara tu clave una vez y carga el archivo de entorno al arrancar:
 
-El listener está limitado a `127.0.0.1`, valida Host y Origin y rechaza solicitudes entre sitios. No está montado en la API pública. Sin `METRICS_PORT`, el panel queda desactivado y se sigue registrando actividad. No publiques este puerto mediante el proxy.
+```sh
+node server/scripts/setup-metrics.mjs .env
+# Añadir DATABASE_URL y los demás ajustes habituales del servicio.
+METRICS_PORT=5184 node --env-file=.env server/index.js
+```
+
+El generador utiliza aleatoriedad criptográfica, conserva la clave existente, protege el archivo con permisos 600 y nunca muestra sus valores. Tu clave de entrada está en `METRICS_ADMIN_KEY`, dentro de `.env`. No se incluye en Git, URLs ni archivos públicos. El panel se abre en `http://127.0.0.1:5184`; permite consultar hoy, 7, 30, 90 o 365 días, actualizar y descargar JSON. Se actualiza cada 30 segundos mientras la pestaña está visible.
+
+El listener está limitado a `127.0.0.1`, valida Host y Origin y rechaza solicitudes entre sitios. Exige inicio de sesión para consultar HTML del panel, datos JSON y el código del dashboard. Sin clave válida, el panel no arranca. No está montado en la API pública. Sin `METRICS_PORT`, el panel queda desactivado y se sigue registrando actividad. No publiques este puerto mediante el proxy.
 
 También puedes consultar desde el directorio del proyecto, con el entorno de conexión habitual:
 
 ```sh
-node server/metrics-report.js 7
+node --env-file=.env server/metrics-report.js 7
 ```
 
-En un contenedor ya configurado, el equivalente es `docker compose exec flores-amarillas node server/metrics-report.js 7` (adapta el nombre del servicio si corresponde). No necesita levantar el panel. El argumento es el número de días, de 1 a 365.
+En un contenedor ya configurado, el equivalente es `docker compose exec flores-amarillas node --env-file=.env server/metrics-report.js 7` (adapta el nombre del servicio si corresponde). No necesita levantar el panel, pero requiere acceso al entorno privado de conexión a la base. El argumento es el número de días, de 1 a 365.
+
+## Protección
+
+- `METRICS_ADMIN_KEY`: clave aleatoria de 256 bits para entrar. El proceso verifica mediante scrypt y comparación constante; no guarda esta clave en cookies ni en el navegador. Cambiarla y reiniciar revoca las sesiones.
+- Sesiones aleatorias, almacenadas como hash en memoria, de 30 minutos; cookies HttpOnly y SameSite=Strict. Cerrar sesión y reiniciar invalidan su acceso. Cinco intentos de entrada por minuto, con concurrencia limitada. Las respuestas llevan `no-store`.
+- La protección corresponde al acceso al panel, su API y sus exportaciones. Por decisión del propietario, los contadores de PostgreSQL mantienen su almacenamiento habitual, sin cifrado adicional. El acceso directo a la base sigue controlado por las credenciales del servidor.
+- El JSON descargado contiene las cifras consultadas. Guárdalo como archivo privado.
+- El panel local usa HTTP en loopback. Cuando se habilite en el VPS, el acceso debe viajar por un túnel SSH cifrado; no debe exponerse su puerto en Internet. Esta revisión no modifica ni despliega el VPS.
 
 ## Qué mide
 
@@ -47,5 +63,7 @@ Los días se calculan en `America/Lima`. El P95 es un intervalo estimado (100 ms
 - El endpoint de eventos admite sólo campos y nombres predefinidos, cuerpos de 2 KB y hasta 120 solicitudes por minuto por IP. El límite usa un hash en memoria y no persiste la IP. Los contadores del navegador son orientativos y pueden ser bloqueados o manipulados por un visitante.
 
 ## Verificación
+
+`tests/metrics-security.test.mjs` comprueba autenticación, bloqueo sin configuración, límites de intentos, caducidad, revocación, aislamiento de origen.
 
 `tests/metrics.test.mjs` comprueba categorías sin datos privados, aislamiento del panel, persistencia real, deduplicación diaria, volumen y tokens, rechazo de contenido privado y cuerpos grandes, DNT y origen. Usa únicamente una base de pruebas con `FLORES_TEST_DB=1`.

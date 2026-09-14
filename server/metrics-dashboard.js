@@ -58,6 +58,10 @@ async function refresh() {
   q("#status").textContent = "Consultando actividad…";
   try {
     const r = await fetch("/api/metrics?days=" + q("#days").value);
+    if (r.status === 401) {
+      location.replace("/");
+      return;
+    }
     if (!r.ok) throw new Error();
     latest = await r.json();
     for (const id of ["cards", "stages", "daily", "http", "sources", "notes"])
@@ -190,3 +194,18 @@ refresh();
 setInterval(() => {
   if (!document.hidden) refresh();
 }, 30000);
+
+document.querySelector("#logout").onclick = async () => {
+  try {
+    const r = await fetch("/logout", { method: "POST" });
+    if (!r.ok) throw new Error();
+    latest = null;
+    location.replace("/");
+  } catch {
+    q("#status").textContent =
+      "No se pudo cerrar la sesión. Inténtalo otra vez.";
+  }
+};
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
