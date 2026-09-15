@@ -7,7 +7,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - ORIGEN=${ORIGEN:-https://amarillas.pascare.tech}
+      - ORIGEN=${ORIGEN:-https://floresparati.site}
       - DATABASE_URL=${DATABASE_URL}
       - MEDIA_ROOT=/app/media
       - AI_DAILY_LIMIT=${AI_DAILY_LIMIT:-250}

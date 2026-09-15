@@ -37,13 +37,13 @@ import { escaparHtml, jsonEnLinea } from "./seguro.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ESTATICOS = process.env.STATIC_ROOT || path.join(__dirname, "public");
 const PUERTO = Number(process.env.PORT || 3000);
-const ORIGEN = process.env.ORIGEN || "https://amarillas.pascare.tech";
+const ORIGEN = process.env.ORIGEN || "https://floresparati.site";
 const TOPE_POR_HORA = Number(process.env.TOPE_POR_HORA || 40);
 
 const app = express();
 app.disable("x-powered-by");
-// Sólo nginx_proxy nos alcanza (el puerto se publica en la pasarela de Docker),
-// así que su X-Forwarded-For sí es de fiar.
+// Los gateways de Nginx suministran la IP del visitante en el último salto.
+// El gateway del túnel sustituye cualquier cadena enviada por el cliente.
 app.set("trust proxy", 1);
 app.use(httpMetrics);
 app.use(createTrafficGuard());

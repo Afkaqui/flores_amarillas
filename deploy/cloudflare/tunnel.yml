@@ -1,0 +1,12 @@
+tunnel: a8d3deca-40a6-4c9c-ab8d-6a1abdf3578c
+credentials-file: /run/secrets/tunnel.json
+metrics: 127.0.0.1:2000
+originRequest:
+  connectTimeout: 5s
+  tcpKeepAlive: 30s
+ingress:
+  - hostname: floresparati.site
+    service: http://gateway:8080
+  - hostname: www.floresparati.site
+    service: http://gateway:8080
+  - service: http_status:404

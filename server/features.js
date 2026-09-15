@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { pool, leerRegalo } from "./db.js";
 import { normalizeDrawing } from "../shared/drawing.js";
 import { propose } from "./assistant.js";
+import { createOriginGuard } from "./origins.js";
 const exec = promisify(execFile);
 const hash = (v) => createHash("sha256").update(v).digest("hex");
 export const MEDIA_ROOT = path.resolve(
@@ -16,18 +17,10 @@ export const MEDIA_ROOT = path.resolve(
 const sessions = new Map();
 let active = 0;
 let activeUploads = 0;
-const allowedOrigin = process.env.ORIGEN;
-export function sameOrigin(req, res, next) {
-  const origin = req.get("origin");
-  if (
-    req.get("sec-fetch-site") === "cross-site" ||
-    (origin && allowedOrigin && origin !== allowedOrigin)
-  )
-    return res
-      .status(403)
-      .json({ error: "Abre el creador desde la página del jardín." });
-  next();
-}
+export const sameOrigin = createOriginGuard([
+  process.env.ORIGEN,
+  ...(process.env.LEGACY_ORIGINS || "").split(",").map((value) => value.trim()),
+]);
 async function session(req) {
   const match = (req.headers.cookie || "").match(
     /(?:^|;\s*)flores_session=([a-f0-9]{48})(?:;|$)/,
