@@ -520,9 +520,9 @@ export class Garden {
   }
 
   _initBichos() {
-    const movil = window.innerWidth < 820;
+    const movil = this.quality.tier === "mobile" || window.innerWidth < 820;
     this.bichos = new Bichos(this.scene, {
-      abejas: movil ? 2 : 4,
+      abejas: this.calidadBaja ? 3 : movil ? 4 : 6,
       mariposas: movil ? 3 : 5,
     });
   }
@@ -1250,7 +1250,8 @@ export class Garden {
       if (n.position.x > 110) n.position.x = -110;
     }
 
-    if (!reducedMotion.matches) this.bichos.actualizar(t, dt, this.flores);
+    if (!reducedMotion.matches)
+      this.bichos.actualizar(t, dt, this.flores, this.bouquetActivo ? this.floresRamo : []);
     this.luciernagas.visible = this.estilo.ambiente === "noche";
     if (this.luciernagas.visible && !reducedMotion.matches) {
       const positions = this.luciernagas.geometry.attributes.position;

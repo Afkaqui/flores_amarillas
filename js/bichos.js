@@ -7,7 +7,6 @@ import { mulberry32 } from './flower.js';
    ============================================================ */
 
 const TWO_PI = Math.PI * 2;
-const ARRIBA = new THREE.Vector3(0, 1, 0);
 
 /* ---------- texturas ---------- */
 function texturaAbeja() {
@@ -92,35 +91,35 @@ class Bicho extends THREE.Group {
     this._dir = new THREE.Vector3(0, 0, 1);
     this._mira = new THREE.Vector3();
     this._p = new THREE.Vector3();
+    this._empuje = new THREE.Vector3();
   }
 
   /** Elige una flor abierta al azar (o un punto cualquiera si no hay) */
   elegirDestino(flores, altoExtra, radio = 13) {
     this.rumbo = 5 + this.rnd() * 6;
-    const abiertas = flores.filter((f) => f.growth > 0.85 && f !== this.flor);
-    if (abiertas.length && this.rnd() < 0.85) {
+    const abiertas = flores.filter((f) => f.growth > 0.85 && (f !== this.flor || flores.length === 1));
+    if (abiertas.length && (this instanceof Abeja || this.rnd() < 0.85)) {
       this.flor = abiertas[Math.floor(this.rnd() * abiertas.length)];
       return;
     }
     this.flor = null;
     const a = this.rnd() * TWO_PI;
-    const r = 2 + this.rnd() * radio;
+    const r = this instanceof Abeja ? 1 + this.rnd() * 2.5 : 2 + this.rnd() * radio;
     this.objetivo.set(Math.cos(a) * r, 0.8 + this.rnd() * altoExtra, Math.sin(a) * r);
   }
 
   /** Punto exacto al que apuntar (la corola de su flor, si tiene una) */
   puntoObjetivo(salida) {
-    if (this.flor && this.flor.parent) {
-      salida.copy(this.flor.head.position);
-      this.flor.localToWorld(salida);
-      return salida;
+    if (this.flor && (this.flor.parent || this.flor.userData.decorativa)) {
+      // Batched field flowers retain their transform, but have no scene parent.
+      return this.flor.head.getWorldPosition(salida);
     }
     return salida.copy(this.objetivo);
   }
 
   /** Empuje hacia el objetivo con un poco de deriva */
   navegar(destino, dt, t, velMax, acel) {
-    const dir = destino.clone().sub(this.position);
+    const dir = this._empuje.copy(destino).sub(this.position);
     const dist = dir.length();
     if (dist > 0.0001) dir.divideScalar(dist);
 
@@ -128,7 +127,7 @@ class Bicho extends THREE.Group {
     // deriva: nadie vuela en línea recta
     this.vel.x += Math.sin(t * 2.1 + this.fase) * 0.12 * dt;
     this.vel.z += Math.cos(t * 1.7 + this.fase * 1.4) * 0.12 * dt;
-    this.vel.multiplyScalar(0.965);
+    this.vel.multiplyScalar(Math.pow(0.965, dt * 60));
 
     const v = this.vel.length();
     if (v > velMax) this.vel.multiplyScalar(velMax / v);
@@ -349,7 +348,28 @@ export class Bichos {
     }
   }
 
-  actualizar(t, dt, flores) {
-    for (const b of this.lista) b.actualizar(t, dt, flores);
+  actualizar(t, dt, flores, floresRamo = []) {
+    const abiertas = flores.filter((f) => f.growth > 0.85);
+    const ramo = floresRamo.filter((f) => f.parent && f.growth > 0.85);
+    const cercanas = abiertas.filter((f) => f.position.lengthSq() < 64);
+    // Bees accompany the gift; butterflies can continue exploring the field.
+    const destinosAbejas = ramo.length ? ramo : cercanas.length ? cercanas : abiertas;
+    for (const b of this.lista) {
+      const destinos = b instanceof Abeja ? destinosAbejas : abiertas;
+      if (!b.iniciado || (b.flor && !destinos.includes(b.flor)) ||
+          (b instanceof Abeja && !b.flor && destinos.length)) {
+        b.espera = 0;
+        if (b instanceof Mariposa) b.posada = 0;
+        b.elegirDestino(destinos, 1.4);
+        if (!b.iniciado && b instanceof Abeja && destinos.length) {
+          b.puntoObjetivo(b.position);
+          b.position.x += Math.cos(b.fase) * 1.1;
+          b.position.z += Math.sin(b.fase) * 1.1;
+          b.position.y += 0.45;
+        }
+        b.iniciado = true;
+      }
+      b.actualizar(t, dt, destinos);
+    }
   }
 }
