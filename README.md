@@ -132,3 +132,9 @@ La opción de WhatsApp usa el [enlace universal documentado](https://faq.whatsap
 ## Iconos de la interfaz
 
 Los controles usan un sprite SVG local de 3,3 KB (`shared/icons.svg`) con trazos, colores y tamaños comunes. No hay emojis del sistema como iconos de botones, formularios, carga, voz o favicon. Los estados de música, reproducción, grabación y descarga conservan sus SVG al cambiar; las etiquetas accesibles siguen siendo texto. El contenido escrito por la persona se mantiene como texto sin interpretar HTML.
+
+## Ambiente inicial y entrada al jardín
+
+El inicio y el creador parten de luciérnagas en pantallas táctiles o de hasta 767 px, y de tarde de sol en escritorio. Si la persona cambia el ambiente manualmente, se recuerda en ese navegador; un regalo recibido conserva su ambiente guardado. Los antiguos borradores no fuerzan el tema inicial por encima de esta preferencia.
+
+La ayuda termina con «Vamos al jardín»: cierra el diálogo, abre la zona para sembrar y deja el foco en «Sembrar 5». La X sigue cerrando únicamente la ayuda. Recorrido comprobado en BrowserOS: ayuda → jardín → cinco flores → creador.

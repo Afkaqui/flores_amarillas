@@ -1,4 +1,8 @@
 /* Shared control sizes and dialog layout. Loaded after decorative styles. */
+body[data-ambiente="noche"] #loader {
+  background: linear-gradient(170deg, #192641, #302c43);
+}
+body[data-ambiente="noche"] .loader-text { color: #dfd3b7; }
 .ui-icon {
   display: inline-block;
   width: 1em;

@@ -34,7 +34,8 @@ anime.suspendWhenDocumentHidden = false;
 startVisitMetrics();
 
 const STORE = "flores-jardin-v2",
-  DRAFT = "flores-carta-v2";
+  DRAFT = "flores-carta-v2",
+  AMBIENT_PREFERENCE = "flores-ambiente-v1";
 const readStorage = (key) => {
   try {
     return JSON.parse(localStorage.getItem(key));
@@ -51,11 +52,19 @@ const writeStorage = (key, data) => {
   }
 };
 const received = leerRegalo();
+const savedAmbient = readStorage(AMBIENT_PREFERENCE);
+const initialAmbient = ["noche", "atardecer"].includes(savedAmbient)
+  ? savedAmbient
+  : matchMedia("(pointer: coarse), (max-width: 767px)").matches
+    ? "noche"
+    : "atardecer";
 let current = normalizeGift({
   permitirRespuesta: true,
   semilla: Math.random(),
   ...readStorage(DRAFT),
+  ambiente: initialAmbient,
 });
+document.body.dataset.ambiente = received?.ambiente || initialAmbient;
 let role = received ? "invitado" : "autor",
   mode = "intro",
   busy = false,
@@ -113,6 +122,7 @@ $("#btn-ambient").addEventListener("click", () => {
   const ambient =
     document.body.dataset.ambiente === "noche" ? "atardecer" : "noche";
   setAmbient(ambient);
+  writeStorage(AMBIENT_PREFERENCE, ambient);
   if (role === "autor" && !["ramo", "preparando"].includes(mode)) {
     $("#f-ambient").value = ambient;
     saveDraft();
@@ -307,6 +317,9 @@ function saveDraft() {
 }
 $("#gift-form").addEventListener("input", saveDraft);
 $("#gift-form").addEventListener("change", saveDraft);
+$("#f-ambient").addEventListener("change", (event) => {
+  writeStorage(AMBIENT_PREFERENCE, event.target.value);
+});
 const suggestions = {
   amor: "Si pudiera regalarte algo que dure para siempre, sería la forma en que te miro. Gracias por hacer florecer mis días.",
   gracias:
@@ -436,7 +449,12 @@ $("#gift-close").addEventListener("click", () => {
 
 $("#btn-how").addEventListener("click", () => abrirModal($("#help-modal")));
 $("#help-close").addEventListener("click", () => cerrarModal($("#help-modal")));
-$("#help-ok").addEventListener("click", () => cerrarModal($("#help-modal")));
+$("#help-ok").addEventListener("click", async () => {
+  if (busy) return;
+  cerrarModal($("#help-modal"));
+  await enterGarden();
+  $("#btn-seed").focus({ preventScroll: true });
+});
 $("#btn-reset").addEventListener("click", () => abrirModal($("#reset-modal")));
 $("#reset-cancel").addEventListener("click", () =>
   cerrarModal($("#reset-modal")),
