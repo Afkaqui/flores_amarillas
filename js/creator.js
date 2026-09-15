@@ -1,4 +1,5 @@
 import { track } from "./metrics.js";
+import { setIconContent } from "./icons.js";
 import {
   INKS,
   MAX_DRAWINGS,
@@ -229,7 +230,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     if (editingDrawing === null) drawings.push(flower);
     else drawings[editingDrawing] = flower;
     editingDrawing = null;
-    $("#draw-plant").textContent = "Añadir a la carta ♡";
+    setIconContent($("#draw-plant"), "heart", "Añadir a la carta");
     drawingHistory = [];
     revision++;
     strokes = [];
@@ -250,13 +251,13 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       note.textContent = flower.note || "Hecha por ti";
       const del = document.createElement("button");
       del.type = "button";
-      del.textContent = "×";
+      setIconContent(del, "close");
       del.setAttribute("aria-label", `Quitar dibujo ${i + 1}`);
       del.onclick = () => {
         drawings.splice(i, 1);
         if (editingDrawing === i) {
           editingDrawing = null;
-          $("#draw-plant").textContent = "Añadir a la carta ♡";
+          setIconContent($("#draw-plant"), "heart", "Añadir a la carta");
         } else if (editingDrawing !== null && editingDrawing > i)
           editingDrawing--;
         revision++;
@@ -272,7 +273,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         strokes = structuredClone(flower.strokes);
         drawingHistory = [];
         $("#draw-note").value = flower.note;
-        $("#draw-plant").textContent = "Guardar mi dibujo ♡";
+        setIconContent($("#draw-plant"), "heart", "Guardar mi dibujo");
         $("#draw-toggle").click();
       };
       card.append(note, edit, del);
@@ -305,7 +306,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "photo-remove";
-        remove.textContent = "×";
+        setIconContent(remove, "close");
         remove.setAttribute("aria-label", "Quitar recuerdo " + (i + 1));
         remove.onclick = () => {
           photos.splice(photos.indexOf(src), 1);
@@ -437,7 +438,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       };
       recording.onstop = async () => {
         recordingStream.getTracks().forEach((t) => t.stop());
-        $("#voice-record").textContent = "● Grabar mi voz";
+        setIconContent($("#voice-record"), "microphone", "Grabar mi voz", { leading: true });
         $("#voice-record").disabled = true;
         try {
           $("#media-status").textContent = "Guardando tu voz…";
@@ -455,7 +456,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         }
       };
       recording.start();
-      $("#voice-record").textContent = "■ Terminar grabación";
+      setIconContent($("#voice-record"), "stop", "Terminar grabación", { leading: true });
       $("#media-status").textContent =
         "Grabando… se detendrá a los 30 segundos.";
       recordingTimer = setTimeout(stopRecording, 30000);
@@ -703,7 +704,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       "Aplicado. Puedes seguir dándole tu toque.";
     closeAssistant(false);
     go($("#f-to").value.trim() ? 2 : 0);
-    toast("Tu idea ya está en la carta. Puedes seguir editándola. ♡");
+    toast("Tu idea ya está en la carta. Puedes seguir editándola.");
   };
   $("#assistant-discard").onclick = () => {
     proposal = null;
@@ -970,7 +971,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#reply-context").textContent = owner
         ? "Este regalo lo creaste tú. Comparte su enlace; su respuesta aparecerá aquí."
         : data.hasReplied
-          ? "Tu respuesta ya está aquí, junto a esta carta ♡"
+          ? "Tu respuesta ya está aquí, junto a esta carta"
           : activeGift?.permitirRespuesta
             ? "Puedes dejarle un detalle de vuelta, sin crear una cuenta."
             : "Esta carta no tiene respuestas habilitadas.";
@@ -1015,7 +1016,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         "Se actualiza mientras lees esta carta.";
     } catch (e) {
       $("#reply-read-status").textContent =
-        e.message + " Puedes volver a intentar con ↻.";
+        e.message + " Puedes usar el botón de actualizar para volver a intentarlo.";
     } finally {
       readingReplies = false;
       $("#reply-refresh").disabled = false;
@@ -1103,7 +1104,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       show("#reply-editor", false);
       await loadReplies();
       $("#reply-read-status").textContent =
-        "Tu respuesta quedó guardada. Ya pueden verla en esta misma carta ♡";
+        "Tu respuesta quedó guardada. Ya pueden verla en esta misma carta";
       $("#reply-list").scrollIntoView({
         block: "nearest",
         behavior: reducedAssistantMotion.matches ? "instant" : "smooth",
@@ -1112,7 +1113,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#reply-status").textContent = e.message;
     } finally {
       b.disabled = false;
-      b.textContent = "Dejar mi respuesta ♡";
+      setIconContent(b, "heart", "Dejar mi respuesta");
     }
   };
   $("#gift-delete").onclick = () => {
@@ -1185,7 +1186,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       strokes = [];
       drawingHistory = [];
       $("#draw-note").value = "";
-      $("#draw-plant").textContent = "Añadir a la carta ♡";
+      setIconContent($("#draw-plant"), "heart", "Añadir a la carta");
       show("#drawing-editor", false);
       drawings = structuredClone(data.dibujos || []);
       photos = [...(data.fotos || [])];

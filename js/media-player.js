@@ -1,4 +1,5 @@
 /** Small accessible voice player shared by the creator and the received letter. */
+import { icon, setIconContent } from "./icons.js";
 export function mountVoicePlayer(
   root,
   {
@@ -7,7 +8,7 @@ export function mountVoicePlayer(
   } = {},
 ) {
   root.classList.add("voice-player");
-  root.innerHTML = `<div class="voice-player-heading"><span aria-hidden="true">♡</span><div><b></b><small></small></div></div><div class="voice-player-controls"><button type="button" class="voice-play" aria-label="Escuchar mensaje de voz"><span aria-hidden="true">▶</span></button><div class="voice-timeline"><div class="voice-bars" aria-hidden="true">${[9, 18, 13, 26, 20, 32, 16, 24, 11, 29, 18, 35, 23, 14, 27, 19, 31, 12, 21, 16].map((h) => `<i style="--bar:${h}px"></i>`).join("")}</div><input type="range" min="0" max="100" value="0" step="0.1" aria-label="Posición del mensaje de voz" disabled /><div class="voice-time"><span>0:00</span><span>—</span></div></div></div><p class="voice-player-status" role="status"></p>`;
+  root.innerHTML = `<div class="voice-player-heading"><span aria-hidden="true">${icon("heart")}</span><div><b></b><small></small></div></div><div class="voice-player-controls"><button type="button" class="voice-play" aria-label="Escuchar mensaje de voz"><span aria-hidden="true">${icon("play")}</span></button><div class="voice-timeline"><div class="voice-bars" aria-hidden="true">${[9, 18, 13, 26, 20, 32, 16, 24, 11, 29, 18, 35, 23, 14, 27, 19, 31, 12, 21, 16].map((h) => `<i style="--bar:${h}px"></i>`).join("")}</div><input type="range" min="0" max="100" value="0" step="0.1" aria-label="Posición del mensaje de voz" disabled /><div class="voice-time"><span>0:00</span><span>—</span></div></div></div><p class="voice-player-status" role="status"></p>`;
   root.querySelector("b").textContent = title;
   root.querySelector("small").textContent = subtitle;
   const audio = document.createElement("audio");
@@ -29,7 +30,7 @@ export function mountVoicePlayer(
   function update() {
     const playing = !audio.paused && !audio.ended;
     root.classList.toggle("is-playing", playing);
-    play.querySelector("span").textContent = playing ? "Ⅱ" : "▶";
+    setIconContent(play.querySelector("span"), playing ? "pause" : "play");
     play.setAttribute(
       "aria-label",
       playing

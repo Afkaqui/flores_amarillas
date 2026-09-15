@@ -5,7 +5,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { renderQuality, FrameBudget } from "./render-quality.js";
+import { renderQuality, nextRenderBudget, FrameBudget } from "./render-quality.js";
 import anime from "animejs";
 import { Flower, mulberry32 } from "./flower.js";
 import { Bichos } from "./bichos.js";
@@ -32,8 +32,8 @@ export class Garden {
     this.quality = quality || renderQuality({
       width: innerWidth,
       coarse: matchMedia("(pointer: coarse)").matches,
-      memory: navigator.deviceMemory || 8,
-      cores: navigator.hardwareConcurrency || 8,
+      memory: navigator.deviceMemory,
+      cores: navigator.hardwareConcurrency,
       saveData: navigator.connection?.saveData,
     });
     this.calidadBaja = this.quality.light;
@@ -73,13 +73,13 @@ export class Garden {
   _initRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: !this.calidadBaja,
+      antialias: true,
       powerPreference: this.calidadBaja ? "low-power" : "default",
     });
     this.renderer.setPixelRatio(
       Math.min(window.devicePixelRatio, this.pixelBudget),
     );
-    this.renderer.shadowMap.enabled = !this.calidadBaja;
+    this.renderer.shadowMap.enabled = this.quality.shadows ?? !this.calidadBaja;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.98;
@@ -118,8 +118,8 @@ export class Garden {
     sol.position.set(11, 16, 7);
     sol.castShadow = true;
     sol.shadow.mapSize.set(
-      this.calidadBaja ? 1024 : 2048,
-      this.calidadBaja ? 1024 : 2048,
+      this.quality.shadowSize || 1024,
+      this.quality.shadowSize || 1024,
     );
     const d = 17;
     sol.shadow.camera.left = -d;
@@ -529,8 +529,13 @@ export class Garden {
 
   _initPost() {
     // Mobile renders directly: no full-resolution HDR targets or bloom passes.
-    if (this.calidadBaja) return;
-    this.composer = new EffectComposer(this.renderer);
+    if (this.quality.bloom === false || this.calidadBaja) return;
+    // Canvas antialiasing does not apply to offscreen postprocessing targets.
+    const target = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.HalfFloatType,
+      samples: Math.min(4, this.renderer.capabilities.maxSamples),
+    });
+    this.composer = new EffectComposer(this.renderer, target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.5, 0.95);
     this.composer.addPass(this.bloom);
@@ -1205,8 +1210,12 @@ export class Garden {
       h = window.innerHeight;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    const ratio = Math.min(window.devicePixelRatio || 1, this.pixelBudget);
+    this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(w, h, false);
+    this.composer?.setPixelRatio(ratio);
     this.composer?.setSize(w, h);
+    if (this.polenMat) this.polenMat.uniforms.uSize.value = 34 * ratio;
     if (this.bouquetActivo) this.vistaRamo(0);
   }
 
@@ -1256,16 +1265,25 @@ export class Garden {
   }
 
   reducirCarga() {
-    this.quality.fps = 30;
-    this.renderer.shadowMap.enabled = false;
-    if (this.composer) {
+    const next = nextRenderBudget({
+      fps: this.quality.fps,
+      shadows: this.renderer.shadowMap.enabled,
+      bloom: !!this.composer,
+      pixelRatio: this.pixelBudget,
+      minPixelRatio: this.quality.minPixelRatio ?? 1,
+    });
+    if (!next) return;
+    this.quality.fps = next.fps;
+    this.renderer.shadowMap.enabled = next.shadows;
+    if (this.composer && !next.bloom) {
       this.composer.passes.forEach((pass) => pass.dispose?.());
       this.composer.dispose();
       this.composer = null;
     }
-    this.pixelBudget = Math.max(0.65, this.pixelBudget * 0.8);
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, this.pixelBudget));
-    this.resize();
+    if (this.pixelBudget !== next.pixelRatio) {
+      this.pixelBudget = next.pixelRatio;
+      this.resize();
+    }
   }
 
   iniciar() {
@@ -1281,7 +1299,7 @@ export class Garden {
       const elapsed = now - last;
       if (last && elapsed < 1000 / this.quality.fps - 1) return;
       if (
-        last && this.pixelBudget > 0.65 &&
+        last &&
         this.frameBudget.sample(elapsed, this.quality.fps)
       )
         this.reducirCarga();

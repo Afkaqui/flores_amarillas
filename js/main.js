@@ -1,4 +1,5 @@
 import { track, startVisitMetrics } from "./metrics.js";
+import { setIconContent } from "./icons.js";
 import * as THREE from "three";
 import anime from "animejs";
 import { GardenFallback } from "./garden-fallback.js";
@@ -102,7 +103,7 @@ function setAmbient(value) {
   garden.aplicarEstilo({ ambiente: night ? "noche" : "atardecer" });
   document.body.dataset.ambiente = night ? "noche" : "atardecer";
   $("#ambient-label").textContent = night ? "Luciérnagas" : "Tarde de sol";
-  $("#btn-ambient").firstElementChild.textContent = night ? "☾" : "☼";
+  setIconContent($("#btn-ambient").firstElementChild, night ? "moon" : "sun");
   $("#btn-ambient").setAttribute(
     "aria-label",
     night ? "Cambiar a tarde de sol" : "Cambiar a noche de luciérnagas",
@@ -152,6 +153,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 music.onCambio = (playing) => {
+  setIconContent($("#btn-sound"), musicWanted ? "music" : "music-off");
   $("#btn-sound").setAttribute("aria-pressed", String(musicWanted));
   $("#btn-sound").setAttribute(
     "aria-label",
@@ -174,9 +176,9 @@ async function toggleMusic(want = !musicWanted, { quiet = false } = {}) {
   }
   if (document.hidden || music.suspendida) return;
   if (!musicReady) musicReady = music.preparar();
-  $("#btn-sound").textContent = "…";
+  setIconContent($("#btn-sound"), "loader");
   const ok = await musicReady;
-  $("#btn-sound").textContent = "♪";
+  setIconContent($("#btn-sound"), musicWanted ? "music" : "music-off");
   if (!ok) {
     musicReady = null;
     if (!quiet)
@@ -306,11 +308,11 @@ function saveDraft() {
 $("#gift-form").addEventListener("input", saveDraft);
 $("#gift-form").addEventListener("change", saveDraft);
 const suggestions = {
-  amor: "Si pudiera regalarte algo que dure para siempre, sería la forma en que te miro. Gracias por hacer florecer mis días. 💛",
+  amor: "Si pudiera regalarte algo que dure para siempre, sería la forma en que te miro. Gracias por hacer florecer mis días.",
   gracias:
     "Por escucharme, por acompañarme y por hacer más bonitos los días sencillos. Este pequeño jardín es mi manera de darte las gracias.",
   distancia:
-    "Aunque hoy no pueda llevártelas en persona, estas flores van llenas de abrazos. Te siento cerquita, incluso desde aquí. 💛",
+    "Aunque hoy no pueda llevártelas en persona, estas flores van llenas de abrazos. Te siento cerquita, incluso desde aquí.",
 };
 for (const button of document.querySelectorAll("[data-message]"))
   button.addEventListener("click", () => {
@@ -499,9 +501,8 @@ function showCard(animate = true) {
     setVisible("#btn-skip", false);
   }
   const guest = role === "invitado";
-  $("#btn-share").textContent = guest
-    ? "Guardar este recuerdo ↓"
-    : "Compartir regalo ↗";
+  setIconContent($("#btn-share"), guest ? "arrow-down" : "arrow-up-right",
+    guest ? "Guardar este recuerdo" : "Compartir regalo");
   setVisible("#btn-download", !guest);
   setVisible("#btn-copy", !guest);
   setVisible("#btn-edit", !guest);
@@ -512,7 +513,7 @@ function showCard(animate = true) {
   memories.replaceChildren();
   current.recuerdos.forEach((text, i) => {
     const button = document.createElement("button");
-    button.textContent = "✿";
+    setIconContent(button, "flower");
     button.setAttribute("aria-label", "Descubrir razón " + (i + 1));
     button.addEventListener("click", () => showMemory(text));
     memories.appendChild(button);
@@ -617,17 +618,17 @@ $("#btn-back").addEventListener("click", () => {
 });
 async function downloadPostcard() {
   const buttons = [$("#btn-download"), $("#btn-share")];
-  const labels = buttons.map((button) => button.textContent);
+  const labels = buttons.map((button) => [...button.childNodes].map((node) => node.cloneNode(true)));
   buttons.forEach((button) => {
     button.disabled = true;
     button.classList.add("is-working");
     button.setAttribute("aria-busy", "true");
-    button.textContent = "Preparando tu recuerdo…";
+    setIconContent(button, "loader", "Preparando tu recuerdo…");
   });
   try {
     await guardarPostal(current);
     track("postcard_saved");
-    toast("Tu recuerdo está listo, con sus fotos y dedicatorias. ♡");
+    toast("Tu recuerdo está listo, con sus fotos y dedicatorias.");
   } catch (error) {
     track("postcard_error");
     toast(
@@ -639,7 +640,7 @@ async function downloadPostcard() {
       button.disabled = false;
       button.classList.remove("is-working");
       button.removeAttribute("aria-busy");
-      button.textContent = labels[i];
+      button.replaceChildren(...labels[i]);
     });
   }
 }
@@ -653,7 +654,7 @@ async function copyLink() {
   }
   if (await copiar(link)) {
     track("gift_shared");
-    toast("Enlace copiado. Ya puedes hacerle llegar su jardín. 💛");
+    toast("Enlace copiado. Ya puedes hacerle llegar su jardín.");
   } else {
     openShare();
     $("#gift-link").focus();

@@ -1,4 +1,65 @@
 /* Shared control sizes and dialog layout. Loaded after decorative styles. */
+.ui-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.btn > .ui-icon,
+.btn > span > .ui-icon,
+.text-button > .ui-icon,
+.btn-hud > .ui-icon,
+.modal-close > .ui-icon,
+.creator .drawn-flower button .ui-icon,
+.photo-remove > .ui-icon,
+#memory-list button > .ui-icon,
+.voice-play .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+.text-button:has(> .ui-icon),
+.drawing-starters button,
+#my-gift-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.brand-mark,
+.complice-mark,
+.thinking-flower,
+.detail-plus,
+.voice-player-heading > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.voice-wave .ui-icon { width: 88px; height: 40px; }
+.detail-icon > .ui-icon { width: 24px; height: 24px; }
+.detail-plus > .ui-icon { width: 20px; height: 20px; }
+.ui-icon.is-spinning { animation: icon-turn 1.1s linear infinite; }
+@keyframes icon-turn { to { transform: rotate(360deg); } }
+.assistant-option[aria-pressed="true"] .option-choice:before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 9px;
+  border-right: 1.7px solid currentColor;
+  border-bottom: 1.7px solid currentColor;
+  transform: rotate(45deg);
+  margin: 0 9px 1px 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-icon.is-spinning { animation: none; }
+}
 .memory-popover { z-index: 35; padding: 68px 24px 24px; max-height: calc(100dvh - 32px); overflow-y: auto; }
 .memory-timeout { display: block; margin-top: 12px; color: #8c806d; font-size: 12px; }
 .share-flower { display: block; color: #b99650; font-size: 36px; margin-bottom: 12px; }

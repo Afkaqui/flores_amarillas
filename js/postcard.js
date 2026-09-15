@@ -299,7 +299,7 @@ export async function renderPostal(value) {
     const top = y;
     paint.push(() => paper(inset, top, content, url ? 118 : 96, "#fcf1ed", 16));
     y += 18;
-    paragraph("Un poquito de mi voz ♡", {
+    paragraph("Un poquito de mi voz", {
       font: "22px Caveat",
       color: "#977280",
       line: 28,
