@@ -112,7 +112,9 @@ La base de datos debe ser accesible desde el contenedor. Configura `ORIGEN` con 
 
 La portada tiene metadatos Open Graph, Twitter y datos estructurados. `/sitemap.xml` incluye sólo la portada; `/robots.txt` anuncia ese sitemap. Las cartas y el panel privado llevan `noindex`. Las cartas se pueden abrir por su enlace, por lo que no deben tratarse como mensajes con acceso restringido.
 
-Las métricas propias registran actividad, volumen y errores sin guardar textos de cartas, fotos o conversaciones. El panel requiere clave y no se enlaza desde la portada.
+El panel privado `/metrics` sirve para **monitorear el funcionamiento y el consumo del servicio**: volumen de peticiones, tráfico, tiempos de respuesta, errores y tokens del asistente. También incluye conteos de uso, como visitas y regalos creados, para dimensionar la capacidad del servidor. Estas métricas no guardan el contenido de cartas, fotos ni conversaciones. Para estimar navegadores por día se usa una cookie de 24 horas; sus identificadores diarios se conservan 30 días y los totales, 365. El panel requiere clave y no se enlaza desde la portada.
+
+Si cambias `OPENCODE_GO_API_KEY`, recrea el contenedor para que tome el nuevo entorno (`docker compose up -d --force-recreate --no-deps flores-amarillas` si usas Compose con ese nombre de servicio). Un reinicio del contenedor existente conserva su entorno anterior. Los fallos del asistente se muestran dentro del creador con opciones para reintentar o seguir escribiendo; el servidor registra únicamente el tipo de fallo y el estado HTTP del proveedor, sin claves ni contenido de las peticiones.
 
 </details>
 

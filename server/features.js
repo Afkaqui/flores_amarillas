@@ -254,6 +254,14 @@ export function registerFeatures(app) {
           explanation: result.explanation,
         });
       } catch (e) {
+        // Only operational codes; never log credentials, prompts or provider bodies.
+        console.error(JSON.stringify({
+          event: "assistant_error",
+          code: e.code === "provider_auth" ? "provider_auth"
+            : e.code === "provider_limit" ? "provider_limit"
+            : controller.signal.aborted ? "cancelled_or_timeout" : "provider_error",
+          providerStatus: e.providerStatus || null,
+        }));
         if (!res.destroyed)
           res.status(e.status || 502).json({
             error: e.status

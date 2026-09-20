@@ -2774,6 +2774,19 @@ body[data-ambiente="noche"] .music-choice {
   overflow: auto;
   margin: 12px 0;
 }
+.assistant-error {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #dec4bc;
+  border-radius: 16px;
+  background: #faf0eb;
+  color: #704e43;
+  line-height: 1.6;
+}
+.assistant-error strong { font-size: 16px; }
+.assistant-error p { margin: 8px 0; font-size: 14px; }
+.assistant-error-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.assistant-error-actions button { min-height: 44px; }
 .assistant-history p {
   font-size: 13px;
 }

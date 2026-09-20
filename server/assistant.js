@@ -129,9 +129,15 @@ export async function propose({
       new Error(
         response.status === 429
           ? "Tu cómplice necesita una pausa. Inténtalo más tarde."
-          : "No pudimos obtener la propuesta. Tu regalo sigue guardado.",
+          : "El asistente no está disponible en este momento. Puedes seguir escribiendo tu carta y volver a intentarlo más tarde.",
       ),
-      { status: response.status === 429 ? 429 : 502 },
+      {
+        status: response.status === 429 ? 429 : 502,
+        code: [401, 403].includes(response.status)
+          ? "provider_auth"
+          : response.status === 429 ? "provider_limit" : "provider_error",
+        providerStatus: response.status,
+      },
     );
   const body = await response.json();
   const content = body.choices?.[0]?.message?.content;

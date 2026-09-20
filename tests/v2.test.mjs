@@ -131,6 +131,25 @@ test("provider errors and malformed responses never become a proposal", async ()
   }
 });
 
+test("provider authentication failures expose a safe message and diagnostic code", async () => {
+  for (const status of [401, 403, 429, 500]) {
+    await assert.rejects(propose({
+      key: "private-test-key",
+      message: "Private letter content",
+      gift: {},
+      fetcher: async () => new Response("Sensitive provider response", { status }),
+    }), (error) => {
+      assert.equal(error.providerStatus, status);
+      assert.equal(error.status, status === 429 ? 429 : 502);
+      assert.equal(error.code, [401, 403].includes(status) ? "provider_auth"
+        : status === 429 ? "provider_limit" : "provider_error");
+      assert.doesNotMatch(error.message, /Sensitive|private-test-key|Private letter/);
+      assert.match(error.message, /asistente|cómplice/);
+      return true;
+    });
+  }
+});
+
 test("contextual choices validate every patch and bound follow-up actions", () => {
   const result = validateProposal({
     options: [

@@ -71,13 +71,13 @@
         z-index: 60;
       }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=20260920-credits" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260920-assistant-errors" />
     <link rel="stylesheet" href="/css/controls.css?v=20260915-device-ambient" />
     <script type="importmap">
       {
         "imports": {
           "/js/postcard.js": "/js/postcard.js?v=20260915-svg-icons",
-          "/js/creator.js": "/js/creator.js?v=20260915-svg-icons",
+          "/js/creator.js": "/js/creator.js?v=20260920-assistant-errors",
           "/js/media-player.js": "/js/media-player.js?v=20260915-svg-icons",
           "/js/icons.js": "/js/icons.js?v=20260915-svg-icons",
           "/js/audio.js": "/js/audio.js?v=20260914-visible-audio",
@@ -792,6 +792,17 @@
                 >
                   Deshacer propuesta
                 </button>
+              </div>
+              <div id="assistant-error" class="assistant-error hidden">
+                <div role="alert">
+                  <strong>No pudimos preparar tus ideas</strong>
+                  <p id="assistant-error-message"></p>
+                  <p>Tu carta y lo que escribiste siguen aquí.</p>
+                </div>
+                <div class="assistant-error-actions">
+                  <button type="button" id="assistant-retry" class="btn btn-soft">Volver a intentar</button>
+                  <button type="button" id="assistant-manual" class="text-button">Seguir con mi carta</button>
+                </div>
               </div>
               <p id="assistant-status" role="status"></p>
             </aside>

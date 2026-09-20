@@ -345,8 +345,8 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     show("#voice-remove", !!voice);
     draftVoice.setSource(voice);
   }
-  const session = () =>
-    fetch("/api/session", { method: "POST" }).then(async (r) => {
+  const session = (signal) =>
+    fetch("/api/session", { method: "POST", signal }).then(async (r) => {
       if (!r.ok) throw new Error("No pudimos conectar. Inténtalo de nuevo.");
       return r.json();
     });
@@ -491,6 +491,8 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
   $("#assistant-letter").onclick = openAssistant;
   $("#assistant-close").onclick = () => closeAssistant();
   $("#assistant-cancel").onclick = () => request?.abort();
+  $("#assistant-retry").onclick = () => $("#assistant-send").click();
+  $("#assistant-manual").onclick = () => closeAssistant();
   function history(text, who) {
     const p = document.createElement("p");
     p.className = who;
@@ -504,7 +506,13 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     const message = $("#assistant-input").value.trim();
     if (!message || request) return;
     const controller = new AbortController();
+    let timedOut = false;
+    const deadline = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 55000);
     request = controller;
+    show("#assistant-error", false);
     const previousVisible = !$("#assistant-proposal").classList.contains(
       "hidden",
     );
@@ -533,7 +541,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       "Buscando una forma bonita de decirlo…";
     history(message, "from-you");
     try {
-      await session();
+      await session(controller.signal);
       if (controller.signal.aborted)
         throw new DOMException("Cancelled", "AbortError");
       const response = await fetch("/api/asistente", {
@@ -542,9 +550,11 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         body: JSON.stringify({ message: context, gift: JSON.parse(base) }),
         signal: controller.signal,
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
       if (!response.ok)
-        throw new Error(data.error || "No pudo terminar la propuesta.");
+        throw new Error(data?.error || "El asistente no está disponible en este momento. Inténtalo más tarde.");
+      if (!data || (!data.options?.length && !data.patch))
+        throw new Error("No pudimos preparar las ideas. Inténtalo de nuevo.");
       if (controller.signal.aborted) return;
       history(data.explanation, "from-complice");
       const options = data.options || [
@@ -636,11 +646,22 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#assistant-input").value = "";
     } catch (e) {
       show("#assistant-proposal", previousVisible);
-      $("#assistant-status").textContent =
-        e.name === "AbortError"
-          ? "Cancelado. Tu regalo sigue como estaba."
-          : e.message;
+      if (controller.signal.aborted && !timedOut) {
+        $("#assistant-status").textContent = "Cancelado. Tu regalo sigue como estaba.";
+      } else {
+        const message = timedOut
+          ? "El asistente está tardando demasiado. Puedes intentarlo de nuevo."
+          : e instanceof TypeError
+            ? "No pudimos conectar con el asistente. Revisa tu conexión e inténtalo de nuevo."
+            : e.message;
+        $("#assistant-error-message").textContent = message;
+        show("#assistant-error", true);
+        history(message, "from-complice");
+        $("#assistant-status").textContent = "Conservamos tu petición y tu carta.";
+        $("#assistant-error").scrollIntoView({ block: "nearest" });
+      }
     } finally {
+      clearTimeout(deadline);
       clearTimeout(loadingTimer);
       show("#assistant-loading", false);
       $("#assistant-options").setAttribute("aria-busy", "false");
