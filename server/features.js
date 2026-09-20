@@ -254,10 +254,19 @@ export function registerFeatures(app) {
           explanation: result.explanation,
         });
       } catch (e) {
+        if (Number.isSafeInteger(e.usage) && e.usage > 0) {
+          res.locals.metricTokens = e.usage;
+          await pool.query(
+            "UPDATE flower_ai_usage SET tokens=tokens+$1 WHERE day=CURRENT_DATE AND actor=$2",
+            [e.usage, "global"],
+          ).catch(() => {});
+        }
         // Only operational codes; never log credentials, prompts or provider bodies.
         console.error(JSON.stringify({
           event: "assistant_error",
           code: e.code === "provider_auth" ? "provider_auth"
+            : e.code === "assistant_scope" ? "assistant_scope"
+            : e.code === "assistant_review" ? "assistant_review"
             : e.code === "provider_limit" ? "provider_limit"
             : controller.signal.aborted ? "cancelled_or_timeout" : "provider_error",
           providerStatus: e.providerStatus || null,
@@ -412,7 +421,10 @@ export function registerFeatures(app) {
       if (!rows.length) return res.status(404).end();
       res.set("Cache-Control", "private, max-age=300");
       res.set("X-Content-Type-Options", "nosniff");
-      res.sendFile(path.join(MEDIA_ROOT, name));
+      res.sendFile(path.join(MEDIA_ROOT, name), (error) => {
+        if (error && !res.headersSent && !res.destroyed)
+          res.status(error.status === 404 ? 404 : 503).end();
+      });
     } catch {
       res.status(503).end();
     }

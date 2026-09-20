@@ -98,7 +98,9 @@ test("agent calls Go with a stable session, minimal private context and validate
             {
               message: {
                 content:
-                  '```json\n{"explanation":"Una idea","patch":{"mensaje":"Gracias por estar."}}\n```',
+                  calls === 1
+                    ? '```json\n{"explanation":"Una idea","patch":{"mensaje":"Gracias por estar."}}\n```'
+                    : '{"allowed":true}',
               },
             },
           ],
@@ -108,9 +110,9 @@ test("agent calls Go with a stable session, minimal private context and validate
       );
     },
   });
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(r.patch.mensaje, "Gracias por estar.");
-  assert.equal(r.usage, 12);
+  assert.equal(r.usage, 24);
 });
 test("provider errors and malformed responses never become a proposal", async () => {
   for (const mock of [

@@ -5,8 +5,9 @@
   --oro: #d79a37;
   --rosa: #b76e79;
   --line: rgba(103, 74, 36, 0.16);
-  --fuente-titulo: "Fraunces", Georgia, serif;
-  --fuente-texto: "Outfit", sans-serif;
+  --fuente-titulo: "Nunito Sans", system-ui, sans-serif;
+  --fuente-texto: "Nunito Sans", system-ui, sans-serif;
+  --fuente-carta: "Kalam", cursive;
   --shadow: 0 24px 80px -35px #5d3c2b66;
   color-scheme: light;
 }
@@ -136,6 +137,8 @@ body:not([data-mode="intro"]) .vignette {
 }
 .title em,
 .modal-title em {
+  font-family: var(--fuente-carta);
+  font-style: normal;
   font-weight: 400;
   color: #b87778;
 }
@@ -165,7 +168,7 @@ body:not([data-mode="intro"]) .vignette {
   position: absolute;
   right: 7vw;
   top: 23%;
-  font-family: "Caveat", cursive;
+  font-family: "Kalam", cursive;
   font-size: 28px;
   color: #416845;
   transform: rotate(-8deg);
@@ -536,7 +539,7 @@ body:not([data-mode="intro"]) .vignette {
   width: 100%;
 }
 .preview-caption {
-  font-family: "Caveat", cursive;
+  font-family: "Kalam", cursive;
   font-size: 19px;
   color: #9f8359;
   text-align: center;
@@ -952,10 +955,10 @@ body:has(#reveal:not(.hidden)) .brand small {
   overflow-wrap: anywhere;
 }
 .card-to b {
-  font-weight: 500;
+  font-weight: 600;
 }
 .card-msg {
-  font: italic 20px/1.7 var(--fuente-titulo);
+  font: 400 22px/1.65 var(--fuente-carta);
   margin: 0;
   min-height: 90px;
   white-space: pre-wrap;
@@ -970,7 +973,7 @@ body:has(#reveal:not(.hidden)) .brand small {
 }
 .card-from span {
   font:
-    32px/1.25 "Caveat",
+    32px/1.25 "Kalam",
     cursive;
   display: inline-block;
   margin-top: 5px;
@@ -1092,7 +1095,7 @@ body:has(#reveal:not(.hidden)) .brand small {
 }
 .flower-reason-words {
   margin: 12px 0 0;
-  font: 27px/1.35 "Caveat", cursive;
+  font: 27px/1.35 "Kalam", cursive;
   color: #705441;
   overflow-wrap: anywhere;
 }
@@ -1570,7 +1573,7 @@ body[data-ambiente="noche"] .music-choice {
     margin-bottom: 12px;
   }
   .card-msg {
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.6;
     min-height: 50px;
   }
@@ -1839,7 +1842,7 @@ body[data-ambiente="noche"] .music-choice {
 }
 .creator-preview .preview-caption {
   font:
-    23px Caveat,
+    23px Kalam,
     cursive;
   color: #657957;
 }
@@ -2533,7 +2536,7 @@ body[data-ambiente="noche"] .music-choice {
   box-shadow: 0 8px 26px #34453508;
 }
 .creator .letter-paper > span {
-  font: italic 20px var(--fuente-titulo);
+  font: 400 20px/1.5 var(--fuente-carta);
   color: #82917c;
 }
 .creator .letter-paper textarea {
@@ -2546,7 +2549,7 @@ body[data-ambiente="noche"] .music-choice {
     #61785e14 32px
   );
   line-height: 32px;
-  font: 19px/32px var(--fuente-titulo);
+  font: 400 21px/32px var(--fuente-carta);
   resize: vertical;
   min-height: 208px;
 }
@@ -3783,7 +3786,7 @@ body[data-ambiente="noche"] .music-choice {
 .memory-photo figcaption p {
   margin: 0;
   color: #617253;
-  font: 18px/1.6 var(--fuente-titulo);
+  font: 400 20px/1.6 var(--fuente-carta);
   overflow-wrap: anywhere;
 }
 .photo-unavailable {
@@ -3976,9 +3979,9 @@ body[data-ambiente="noche"] .music-choice {
 }
 .draw-invite b {
   font:
-    500 22px Fraunces,
-    Georgia,
-    serif;
+    500 22px "Nunito Sans",
+    system-ui,
+    sans-serif;
   color: #52674f;
 }
 .draw-invite p {
@@ -3998,9 +4001,9 @@ body[data-ambiente="noche"] .music-choice {
 }
 .drawing-heading {
   font:
-    500 21px Fraunces,
-    Georgia,
-    serif;
+    500 21px "Nunito Sans",
+    system-ui,
+    sans-serif;
   color: #52674f;
   gap: 12px;
   margin: 0;
@@ -4090,7 +4093,7 @@ body[data-ambiente="noche"] .music-choice {
 }
 #draw-note {
   font:
-    20px Caveat,
+    20px Kalam,
     cursive;
   padding: 14px 16px;
   border-radius: 12px;
@@ -4119,7 +4122,7 @@ body[data-ambiente="noche"] .music-choice {
 }
 .drawn-flower small {
   font:
-    17px Caveat,
+    17px Kalam,
     cursive;
   line-height: 1.35;
   padding: 0 4px 8px;
@@ -4184,7 +4187,7 @@ body[data-ambiente="noche"] .music-choice {
 .letter-extras .illustrated-note figcaption {
   margin: 0;
   font:
-    22px/1.2 Caveat,
+    22px/1.2 Kalam,
     cursive;
   color: #738066;
 }

@@ -49,6 +49,33 @@ export class Musica {
   async preparar() {
     try {
       const YT = await cargarAPI();
+      // Bind the API only after the iframe has left its initial about:blank origin.
+      const frame = document.createElement("iframe");
+      frame.id = this.contenedor;
+      frame.title = "Música de fondo";
+      frame.width = "200";
+      frame.height = "200";
+      frame.allow = "autoplay; encrypted-media";
+      frame.tabIndex = -1;
+      frame.setAttribute("aria-hidden", "true");
+      const params = new URLSearchParams({
+        enablejsapi: "1", origin: window.location.origin, autoplay: "0",
+        controls: "0", disablekb: "1", loop: "1", playlist: this.videoId,
+        playsinline: "1", rel: "0",
+      });
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          frame.remove();
+          reject(new Error("timeout del marco de música"));
+        }, 12000);
+        frame.onload = () => { clearTimeout(timer); resolve(); };
+        frame.onerror = () => { clearTimeout(timer); reject(new Error("música no disponible")); };
+        frame.src = `https://www.youtube.com/embed/${encodeURIComponent(this.videoId)}?${params}`;
+        const previous = document.getElementById(this.contenedor);
+        if (previous) previous.replaceWith(frame);
+        else document.body.appendChild(frame);
+      });
+      frame.onload = frame.onerror = null;
       await new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
           this.player?.destroy();
@@ -56,19 +83,6 @@ export class Musica {
           reject(new Error("timeout del reproductor"));
         }, 10000);
         this.player = new YT.Player(this.contenedor, {
-          videoId: this.videoId,
-          width: 1,
-          height: 1,
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            loop: 1,
-            playlist: this.videoId, // necesario para que loop funcione
-            playsinline: 1,
-            modestbranding: 1,
-            rel: 0,
-          },
           events: {
             onReady: () => {
               clearTimeout(timer);
@@ -99,6 +113,8 @@ export class Musica {
       this.disponible = false;
       this.player?.destroy();
       this.player = null;
+      const failedFrame = document.getElementById(this.contenedor);
+      if (failedFrame?.tagName === "IFRAME") failedFrame.remove();
       if (!document.getElementById(this.contenedor)) {
         const el = document.createElement("div");
         el.id = this.contenedor;

@@ -128,7 +128,7 @@ export function mountVoicePlayer(
     if (source) {
       failed = true;
       status.textContent =
-        "Este audio no está disponible. Puedes volver a intentarlo.";
+        "Este audio no está disponible en este servidor. Si estás preparando la carta, vuelve a grabarlo o subirlo.";
       update();
     }
   });

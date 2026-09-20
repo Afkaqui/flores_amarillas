@@ -64,10 +64,10 @@ async function loadLetterFonts() {
   try {
     await Promise.race([
       Promise.all([
-        document.fonts.load("400 34px Fraunces"),
-        document.fonts.load("italic 400 27px Fraunces"),
-        document.fonts.load("400 32px Caveat"),
-        document.fonts.load("400 14px Outfit"),
+        document.fonts.load("600 34px Nunito Sans"),
+        document.fonts.load("400 27px Kalam"),
+        document.fonts.load("400 32px Kalam"),
+        document.fonts.load("400 14px Nunito Sans"),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(
@@ -163,7 +163,7 @@ export async function renderPostal(value) {
     ctx.restore();
   });
   paragraph(OCCASIONS[d.ocasion].toUpperCase(), {
-    font: "11px Outfit",
+    font: "11px Nunito Sans",
     color: "#a18960",
     line: 17,
     x: inset + 38,
@@ -180,45 +180,45 @@ export async function renderPostal(value) {
   const salutationTop = y;
   paint.push(() => ctx.drawImage(sprig, width - inset - 94, salutationTop - 5, 94, 125));
   paragraph("PARA", {
-    font: "11px Outfit",
+    font: "11px Nunito Sans",
     color: "#927f66",
     line: 18,
   });
   y += 8;
   paragraph(d.para, {
-    font: "400 36px Fraunces",
+    font: "600 36px Nunito Sans",
     color: d.ambiente === "noche" ? "#504950" : "#34513f",
     line: 44,
     maxWidth: content - 120,
   });
   y = Math.max(y, salutationTop + 120) + 26;
   paragraph(d.mensaje, {
-    font: "italic 400 27px Fraunces",
+    font: "400 27px Kalam",
     color: "#705439",
     line: 44,
   });
   y += 38;
   paragraph("Con todo mi cariño,", {
-    font: "13px Outfit",
+    font: "13px Nunito Sans",
     color: "#927f69",
     line: 20,
   });
   y += 6;
   paragraph(d.de || "alguien que te quiere", {
-    font: "32px Caveat",
+    font: "32px Kalam",
     color: "#986d64",
     line: 39,
   });
   y += 38;
   if (d.recuerdos.length) {
     paragraph("CADA FLOR GUARDA ALGO BONITO", {
-      font: "11px Outfit",
+      font: "11px Nunito Sans",
       color: "#889477",
       line: 18,
     });
     y += 18;
     d.recuerdos.forEach((memory) => {
-      paragraph(memory, { font: "20px Fraunces", color: "#65775a", line: 29 });
+      paragraph(memory, { font: "22px Kalam", color: "#65775a", line: 29 });
       y += 16;
     });
     y += 12;
@@ -229,7 +229,7 @@ export async function renderPostal(value) {
     const noteWidth = 206,
       gap = 26;
     const start = (width - row.length * noteWidth - (row.length - 1) * gap) / 2;
-    ctx.font = "24px Caveat";
+    ctx.font = "24px Kalam";
     const notes = row.map((_, j) =>
       d.dibujos[i + j].note
         ? wrap(ctx, d.dibujos[i + j].note, noteWidth - 28)
@@ -249,7 +249,7 @@ export async function renderPostal(value) {
         ctx.translate(-noteWidth / 2, -h / 2);
         paper(0, 0, noteWidth, h, j % 2 ? "#fcf6f2" : "#fffcf7", [3, 3, 20, 3]);
         ctx.drawImage(image, 23, 12, 160, 160);
-        ctx.font = "24px Caveat";
+        ctx.font = "24px Kalam";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         ctx.fillStyle = "#738066";
@@ -265,7 +265,7 @@ export async function renderPostal(value) {
   if (photos.length) {
     y += 4;
     paragraph("PEDACITOS DE LO NUESTRO", {
-      font: "12px Outfit",
+      font: "12px Nunito Sans",
       color: "#889477",
       line: 18,
     });
@@ -281,7 +281,7 @@ export async function renderPostal(value) {
     const caption =
       d.momentos.find((m) => m.foto === d.fotos[i])?.texto ||
       "Un momento que quería guardar contigo.";
-    ctx.font = "18px Fraunces";
+    ctx.font = "20px Kalam";
     const lines = wrap(ctx, caption, content - 70);
     const h = 16 + imageH + 24 + lines.length * 27 + 22,
       top = y;
@@ -291,14 +291,14 @@ export async function renderPostal(value) {
       tape(width / 2, top);
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.font = "11px Outfit";
+      ctx.font = "11px Nunito Sans";
       ctx.fillStyle = "#a0a58d";
       ctx.fillText(
         String(i + 1).padStart(2, "0"),
         inset + 18,
         top + imageH + 43,
       );
-      ctx.font = "18px Fraunces";
+      ctx.font = "20px Kalam";
       ctx.fillStyle = "#65775a";
       lines.forEach((line, k) =>
         ctx.fillText(line, inset + 46, top + imageH + 40 + k * 27),
@@ -317,14 +317,14 @@ export async function renderPostal(value) {
     paint.push(() => paper(inset, top, content, url ? 118 : 96, "#fcf1ed", 16));
     y += 18;
     paragraph("Un poquito de mi voz", {
-      font: "22px Caveat",
+      font: "22px Kalam",
       color: "#977280",
       line: 28,
       x: inset + 20,
       maxWidth: content - 40,
     });
     paragraph("Escúchala al abrir el enlace de este regalo.", {
-      font: "13px Outfit",
+      font: "13px Nunito Sans",
       color: "#87746b",
       line: 22,
       x: inset + 20,
@@ -332,7 +332,7 @@ export async function renderPostal(value) {
     });
     if (url)
       paragraph(url, {
-        font: "11px Outfit",
+        font: "11px Nunito Sans",
         color: "#87746b",
         line: 18,
         x: inset + 20,
@@ -352,7 +352,7 @@ export async function renderPostal(value) {
   });
   y += 24;
   paragraph("flores amarillas · pequeños gestos, mucho amor", {
-    font: "11px Outfit",
+    font: "11px Nunito Sans",
     color: "#a19c86",
     line: 18,
     align: "center",

@@ -82,6 +82,9 @@ test(
       const home = await api("/");
       const homeHtml = await home.text();
       assert.equal(home.status, 200);
+      const favicon = await api("/favicon.ico");
+      assert.equal(favicon.status, 200);
+      assert.match(favicon.headers.get("content-type"), /image\/svg\+xml/);
       assert.match(homeHtml, /Hay personas/);
       assert.ok(!homeHtml.includes("Tu clave de acceso"));
       const metrics = await api("/metrics");
@@ -164,11 +167,15 @@ test(
         voz: voice,
         permitirRespuesta: true,
       };
-      assert.notEqual(
+      assert.equal(
         (await api("/api/regalos", { method: "POST", cookie: b, data: gift }))
           .status,
-        201,
+        422,
       );
+      const missing = await api("/api/regalos", { method: "POST", cookie: a,
+        data: { ...gift, fotos: ["/media/" + "f".repeat(48) + ".webp"] } });
+      assert.equal(missing.status, 422);
+      assert.match((await missing.json()).error, /adjuntarlos/);
       const first = await api("/api/regalos", {
         method: "POST",
         cookie: a,

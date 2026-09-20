@@ -1,4 +1,5 @@
 import { track } from "./metrics.js";
+import { mountDetailAccordions } from "./detail-accordion.js";
 import { setIconContent } from "./icons.js";
 import {
   INKS,
@@ -184,13 +185,24 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     };
     $("#ink-colors").append(b);
   });
-  $("#draw-toggle").onclick = () => {
-    show("#drawing-editor", true);
-    $("#draw-status").textContent = "";
-    paint();
-    $("#drawing-editor").scrollIntoView({ block: "nearest" });
-  };
-  $("#draw-hide").onclick = () => show("#drawing-editor", false);
+  const drawingDetail = $("#drawing-detail");
+  const detailAccordions = mountDetailAccordions($(".letter-details"), {
+    onChange(detail, open) {
+      if (detail.classList.contains("voice-detail") && !open) stopRecording();
+      if (detail === drawingDetail && open) {
+        $("#draw-status").textContent = "";
+        paint();
+      }
+    },
+  });
+  function closeDrawing() {
+    $("#draw-toggle").focus({ preventScroll: true });
+    detailAccordions.setOpen(drawingDetail, false).then((completed) => {
+      if (completed && document.activeElement === $("#draw-toggle"))
+        $("#draw-toggle").scrollIntoView({ block: "nearest", behavior: reducedAssistantMotion.matches ? "instant" : "smooth" });
+    });
+  }
+  $("#draw-hide").onclick = closeDrawing;
   $("#draw-width").onclick = (e) => {
     width = width === 4 ? 7 : 4;
     e.currentTarget.setAttribute("aria-pressed", String(width === 7));
@@ -238,9 +250,12 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
     $("#draw-note").value = "";
     $("#draw-status").textContent = "Tu dibujo ya acompaña la carta.";
     save();
-    show("#drawing-editor", false);
+    closeDrawing();
   };
   function renderDrawings() {
+    $("#drawing-summary").textContent = drawings.length
+      ? `${drawings.length} ${drawings.length === 1 ? "dibujo en tu carta" : "dibujos en tu carta"} · Ver o añadir`
+      : "Un dibujo tuyo, dentro de su carta.";
     const list = $("#drawing-list");
     list.replaceChildren();
     drawings.forEach((flower, i) => {
@@ -274,7 +289,9 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         drawingHistory = [];
         $("#draw-note").value = flower.note;
         setIconContent($("#draw-plant"), "heart", "Guardar mi dibujo");
-        $("#draw-toggle").click();
+        detailAccordions.setOpen(drawingDetail, true);
+        $("#drawing-canvas").scrollIntoView({ block: "nearest", behavior: reducedAssistantMotion.matches ? "instant" : "smooth" });
+        paint();
       };
       card.append(note, edit, del);
       list.append(card);
@@ -301,6 +318,15 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         const card = document.createElement("div");
         card.className = "photo-edit-card";
         const img = document.createElement("img");
+        img.onerror = () => {
+          img.hidden = true;
+          const notice = document.createElement("p");
+          notice.className = "photo-missing-notice";
+          notice.setAttribute("role", "status");
+          notice.textContent = "Esta foto no está disponible en este servidor. Vuelve a subirla para incluirla; conservamos tus palabras.";
+          card.prepend(notice);
+          img.onerror = null;
+        };
         img.src = src;
         img.alt = "Recuerdo " + (i + 1);
         const remove = document.createElement("button");
@@ -1211,7 +1237,7 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       drawingHistory = [];
       $("#draw-note").value = "";
       setIconContent($("#draw-plant"), "heart", "Añadir a la carta");
-      show("#drawing-editor", false);
+      detailAccordions.setOpen(drawingDetail, false, { immediate: true });
       drawings = structuredClone(data.dibujos || []);
       photos = [...(data.fotos || [])];
       photoNotes = Object.fromEntries(

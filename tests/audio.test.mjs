@@ -6,10 +6,22 @@ test("hidden pages cannot start music, and delayed YouTube play events are pause
   const original = { document: globalThis.document, window: globalThis.window, cancel: globalThis.cancelAnimationFrame };
   const calls = [];
   let events;
-  globalThis.document = { hidden: false };
+  let frameLoaded = false;
+  let frame;
+  globalThis.document = { hidden: false,
+    createElement() { return { setAttribute() {}, remove() {} }; },
+    getElementById() { return { replaceWith(value) {
+      frame = value;
+      queueMicrotask(() => { frameLoaded = true; value.onload(); });
+    } }; },
+  };
   globalThis.cancelAnimationFrame = () => {};
-  globalThis.window = { YT: { Player: class {
-    constructor(_id, options) { events = options.events; queueMicrotask(events.onReady); }
+  globalThis.window = { location: { origin: "http://127.0.0.1:5183" }, YT: { Player: class {
+    constructor(_id, options) {
+      assert.equal(frameLoaded, true, "waits for the YouTube iframe before postMessage handshake");
+      assert.equal(new URL(frame.src).searchParams.get("origin"), window.location.origin);
+      events = options.events; queueMicrotask(events.onReady);
+    }
     unMute() { calls.push("unmute"); }
     mute() { calls.push("mute"); }
     setVolume() {}

@@ -40,6 +40,7 @@ const ESTATICOS = process.env.STATIC_ROOT || path.join(__dirname, "public");
 const PUERTO = Number(process.env.PORT || 3000);
 const ORIGEN = process.env.ORIGEN || "https://floresparati.site";
 const TOPE_POR_HORA = Number(process.env.TOPE_POR_HORA || 40);
+const HOST = process.env.HOST || "0.0.0.0";
 
 const app = express();
 app.disable("x-powered-by");
@@ -48,6 +49,7 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(httpMetrics);
 app.use(createTrafficGuard());
+app.get("/favicon.ico", (_req, res) => res.sendFile(path.join(ESTATICOS, "shared/favicon.svg")));
 app.use((req, res, next) => {
   if (/^\/(r|metrics|api|media)(\/|$)/.test(req.path))
     res.set("X-Robots-Tag", "noindex, nofollow");
@@ -124,6 +126,10 @@ app.post("/api/regalos", async (req, res) => {
     }
     res.status(500).json({ error: "no se pudo generar el enlace" });
   } catch (err) {
+    if (err.message === "media-owner")
+      return res.status(422).json({
+        error: "Hay fotos o audios que no están disponibles para esta sesión. Vuelve a adjuntarlos antes de compartir tu carta.",
+      });
     console.error("[POST /api/regalos]", err.message);
     res.status(500).json({ error: "error guardando el ramo" });
   }
@@ -256,7 +262,7 @@ try {
 }
 
 const dashboard = startMetricsDashboard();
-const server = app.listen(PUERTO, "0.0.0.0", () => {
+const server = app.listen(PUERTO, HOST, () => {
   console.log(`[flores] escuchando en :${PUERTO} — origen ${ORIGEN}`);
 });
 

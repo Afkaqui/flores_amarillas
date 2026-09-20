@@ -46,7 +46,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Outfit:wght@300;400;500;600&family=Caveat:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&family=Kalam:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -71,17 +71,18 @@
         z-index: 60;
       }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=20260920-soft-arrival" />
-    <link rel="stylesheet" href="/css/controls.css?v=20260920-inline-flowers" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260920-personal-type" />
+    <link rel="stylesheet" href="/css/controls.css?v=20260920-personal-type" />
     <script type="importmap">
       {
         "imports": {
           "/js/ui.js": "/js/ui.js?v=20260920-gentle-writing",
-          "/js/postcard.js": "/js/postcard.js?v=20260920-stationery",
-          "/js/creator.js": "/js/creator.js?v=20260920-inline-flowers",
-          "/js/media-player.js": "/js/media-player.js?v=20260915-svg-icons",
+          "/js/postcard.js": "/js/postcard.js?v=20260920-personal-type",
+          "/js/creator.js": "/js/creator.js?v=20260920-backend-review",
+          "/js/detail-accordion.js": "/js/detail-accordion.js?v=20260920-slow-drawing",
+          "/js/media-player.js": "/js/media-player.js?v=20260920-backend-review",
           "/js/icons.js": "/js/icons.js?v=20260915-svg-icons",
-          "/js/audio.js": "/js/audio.js?v=20260914-visible-audio",
+          "/js/audio.js": "/js/audio.js?v=20260920-frame-ready",
           "/js/garden.js": "/js/garden.js?v=20260915-bees",
           "/js/bichos.js": "/js/bichos.js?v=20260915-bees",
           "/js/render-quality.js": "/js/render-quality.js?v=20260915-mobile-sharp",
@@ -382,14 +383,9 @@
               data-panel="2"
               aria-labelledby="step-letter-title"
             >
-              <p class="step-number">LO QUE FLORECE POR DENTRO</p>
-              <h3 id="step-letter-title">Ahora, tus palabras.</h3>
-              <p class="step-description">
-                Tus palabras son el regalo. Los pequeños detalles lo hacen muy
-                tuyo.
-              </p>
               <div class="letter-workspace">
                 <div class="letter-main">
+                  <h3 id="step-letter-title">Ahora, tus palabras.</h3>
                   <label class="field letter-paper"
                     ><span>Querida persona especial…</span
                     ><textarea
@@ -429,94 +425,88 @@
                       ><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span>
                     </button>
                   </div>
-                  <div class="draw-invite">
-                    <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#pen"></use></svg></span>
-                    <div>
-                      <b>Dibújale algo.</b>
-                      <p>
-                        Un corazón, una carita, ese chiste suyo. Lo encontrará
-                        dentro de la carta.
-                      </p>
-                    </div>
-                    <button type="button" class="btn btn-soft" id="draw-toggle">
-                      Dibujar <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg>
-                    </button>
-                  </div>
-                  <div id="drawing-editor" class="drawing-editor hidden">
-                    <div class="drawing-heading">
-                      <b>Un detalle de tu puño y corazón.</b
-                      ><button
-                        type="button"
-                        class="text-button"
-                        id="draw-hide"
-                        aria-label="Cerrar dibujo"
-                      >
-                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
-                      </button>
-                    </div>
-                    <p class="drawing-hint">
-                      Dibuja a tu manera o empieza con una idea. Después hazla
-                      tuya.
-                    </p>
-                    <div
-                      class="drawing-starters"
-                      aria-label="Ideas para empezar"
-                    >
-                      <button type="button" id="draw-template">
-                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower-stem"></use></svg> Una flor
-                      </button>
-                      <button type="button" data-draw-template="heart">
-                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg> Un corazón
-                      </button>
-                      <button type="button" data-draw-template="sparkle">
-                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg> Un destello
-                      </button>
-                    </div>
-                    <div class="drawing-workspace">
-                      <canvas
-                        id="drawing-canvas"
-                        width="600"
-                        height="600"
-                        aria-label="Dibuja un detalle para la carta con el dedo o mouse"
-                      ></canvas>
-                      <div class="drawing-tools">
-                        <span class="drawing-tool-label">Tu tinta</span>
-                        <div id="ink-colors" aria-label="Color del trazo"></div>
-                        <button
-                          type="button"
-                          id="draw-width"
-                          aria-pressed="false"
-                        >
-                          Trazo grueso</button
-                        ><button type="button" id="draw-undo">Deshacer</button
-                        ><button type="button" id="draw-clear">Limpiar</button>
-                      </div>
-                    </div>
-                    <label class="field"
-                      ><span>Una frase para acompañarlo</span
-                      ><input
-                        id="draw-note"
-                        maxlength="80"
-                        placeholder="Ese abrazo que te debo…" /></label
-                    ><button
-                      type="button"
-                      id="draw-plant"
-                      class="btn btn-primary"
-                    >
-                      Añadir a la carta <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
-                    </button>
-                    <p id="draw-status" role="status"></p>
-                  </div>
-                  <div
-                    id="drawing-list"
-                    class="drawing-list"
-                    aria-label="Tus dibujos para la carta"
-                  ></div>
                 </div>
                 <div class="letter-details">
                   <p class="details-heading">
                     UN POQUITO MÁS DE TI <span>Todo es opcional</span>
                   </p>
+                  <details class="detail-card drawing-detail" id="drawing-detail">
+                    <summary id="draw-toggle" aria-controls="drawing-editor">
+                      <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#pen"></use></svg></span>
+                      <span><b>Dibújale algo</b><small id="drawing-summary">Un dibujo tuyo, dentro de su carta.</small></span>
+                      <span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
+                    </summary>
+                    <div id="drawing-editor" class="drawing-editor">
+                      <div class="drawing-heading">
+                        <b>Un detalle de tu puño y corazón.</b
+                        ><button
+                          type="button"
+                          class="text-button"
+                          id="draw-hide"
+                          aria-label="Cerrar dibujo"
+                        >
+                          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+                        </button>
+                      </div>
+                      <p class="drawing-hint">
+                        Dibuja a tu manera o empieza con una idea. Después hazla
+                        tuya.
+                      </p>
+                      <div
+                        class="drawing-starters"
+                        aria-label="Ideas para empezar"
+                      >
+                        <button type="button" id="draw-template">
+                          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower-stem"></use></svg> Una flor
+                        </button>
+                        <button type="button" data-draw-template="heart">
+                          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg> Un corazón
+                        </button>
+                        <button type="button" data-draw-template="sparkle">
+                          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg> Un destello
+                        </button>
+                      </div>
+                      <div class="drawing-workspace">
+                        <canvas
+                          id="drawing-canvas"
+                          width="600"
+                          height="600"
+                          aria-label="Dibuja un detalle para la carta con el dedo o mouse"
+                        ></canvas>
+                        <div class="drawing-tools">
+                          <span class="drawing-tool-label">Tu tinta</span>
+                          <div id="ink-colors" aria-label="Color del trazo"></div>
+                          <button
+                            type="button"
+                            id="draw-width"
+                            aria-pressed="false"
+                          >
+                            Trazo grueso</button
+                          ><button type="button" id="draw-undo">Deshacer</button
+                          ><button type="button" id="draw-clear">Limpiar</button>
+                        </div>
+                      </div>
+                      <label class="field"
+                        ><span>Una frase para acompañarlo</span
+                        ><input
+                          id="draw-note"
+                          maxlength="80"
+                          placeholder="Ese abrazo que te debo…" /></label
+                      ><button
+                        type="button"
+                        id="draw-plant"
+                        class="btn btn-primary"
+                      >
+                        Añadir a la carta <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+                      </button>
+                      <p id="draw-status" role="status"></p>
+                    </div>
+                    <div
+                      id="drawing-list"
+                      class="drawing-list"
+                      aria-label="Tus dibujos para la carta"
+                    ></div>
+                  </details>
                   <details class="detail-card memories-editor">
                     <summary>
                       <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span
@@ -558,7 +548,7 @@
                       /></label>
                     </div>
                   </details>
-                  <details class="detail-card">
+                  <details class="detail-card photo-detail">
                     <summary>
                       <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#image"></use></svg></span
                       ><span
@@ -589,13 +579,13 @@
                       <div id="photo-list" class="photo-list"></div>
                     </div>
                   </details>
-                  <details class="detail-card">
+                  <details class="detail-card voice-detail">
                     <summary>
                       <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#waveform"></use></svg></span
                       ><span
-                        ><b>Que también escuche tu voz</b
+                        ><b>Tu voz, cerquita</b
                         ><small
-                          >Un «te quiero» suena distinto cuando es tuyo.</small
+                          >Un mensaje con tu propia voz.</small
                         ></span
                       ><span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
                     </summary>
@@ -629,8 +619,7 @@
                     ><span
                       ><b>Dejar la puerta abierta</b
                       ><small
-                        >Podrá responder con un dibujito y unas palabras en este
-                        mismo regalo.</small
+                        >Podrá dejarte unas palabras y un dibujo.</small
                       ></span
                     ><input type="checkbox" id="f-reply" role="switch" checked /><span
                       class="reply-switch"

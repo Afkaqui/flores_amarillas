@@ -76,6 +76,10 @@ node --env-file=.env server/index.js
 
 Abre `http://localhost:3000`. El servidor prepara las tablas al arrancar. El asistente necesita `OPENCODE_GO_API_KEY`; el jardín y las cartas funcionan sin esa clave. El panel privado está en `/metrics` y usa la clave generada por el script de configuración. No incluyas `.env` en el repositorio.
 
+Para probar la aplicación completa utiliza este servidor Node: un servidor estático como `python -m http.server` no atiende `/api` ni `/media` y devuelve errores 501/404. Usa `HOST=127.0.0.1` para limitar el servidor local a tu máquina. Las fotos y notas de voz requieren tanto los archivos de `MEDIA_ROOT` como sus registros en PostgreSQL; un borrador del navegador no contiene copias de esos archivos.
+
+El asistente está limitado a dedicatorias y detalles del regalo. El servidor filtra patrones de desvío, valida los campos permitidos y revisa la propuesta en una segunda llamada independiente antes de mostrarla. Si la revisión falla o rechaza el contenido, no entrega la propuesta. No dispone de herramientas, ejecución de código, navegación ni acceso al servidor. Estas capas reducen los intentos de inyección; no constituyen una garantía absoluta frente a todos los ataques. Se mantienen los límites de sesión, concurrencia y consumo, y se contabilizan los tokens de ambas llamadas, incluso cuando la revisión rechaza una propuesta.
+
 <details>
 <summary><strong>Pruebas y estructura</strong></summary>
 

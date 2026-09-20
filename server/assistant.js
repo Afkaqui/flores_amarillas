@@ -6,6 +6,7 @@ import {
   OCCASIONS,
 } from "../shared/gift.js";
 import { LETTER_STYLE, LETTER_EXAMPLE } from "./letter-style.js";
+import { assertScopeText, scopeError, SCOPE_POLICY } from "./assistant-scope.js";
 function validatePatch(value) {
   if (
     !value ||
@@ -93,61 +94,87 @@ export async function propose({
     );
   const d = normalizeGift(gift);
   const { dibujos, fotos, momentos, voz, ...context } = d;
-  const response = await fetcher(
-    "https://opencode.ai/zen/go/v1/chat/completions",
-    {
-      method: "POST",
-      signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + key,
-        "User-Agent": "flores-amarillas/2.0",
-        "x-opencode-session": sessionId,
-      },
-      body: JSON.stringify({
-        model: "glm-5.3-flash",
-        max_tokens: 2800,
-        temperature: 0.7,
-        stream: false,
-        messages: [
-          {
-            role: "system",
-            content: LETTER_STYLE,
-          },
-          ...LETTER_EXAMPLE,
-          ...history.slice(-8),
-          {
-            role: "user",
-            content: JSON.stringify({
-              regalo: context,
-              peticion: String(message).slice(0, 1200),
-            }),
-          },
-        ],
-      }),
-    },
-  );
-  if (!response.ok)
-    throw Object.assign(
-      new Error(
-        response.status === 429
-          ? "Tu cómplice necesita una pausa. Inténtalo más tarde."
-          : "El asistente no está disponible en este momento. Puedes seguir escribiendo tu carta y volver a intentarlo más tarde.",
-      ),
+  const conversation = history.slice(-8)
+    .filter((item) => ["user", "assistant"].includes(item?.role) && typeof item.content === "string")
+    .map(({ role, content }) => ({ role, content: content.slice(0, 6000) }));
+  const request = { regalo: context, peticion: String(message).slice(0, 1200) };
+  assertScopeText(request);
+  for (const item of conversation) assertScopeText(item.content);
+  let usage = 0;
+  async function complete(messages, maxTokens, temperature) {
+    const response = await fetcher(
+      "https://opencode.ai/zen/go/v1/chat/completions",
       {
-        status: response.status === 429 ? 429 : 502,
-        code: [401, 403].includes(response.status)
-          ? "provider_auth"
-          : response.status === 429 ? "provider_limit" : "provider_error",
-        providerStatus: response.status,
+        method: "POST",
+        signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + key,
+          "User-Agent": "flores-amarillas/2.0",
+          "x-opencode-session": sessionId,
+        },
+        body: JSON.stringify({
+          model: "glm-5.3-flash",
+          max_tokens: maxTokens,
+          temperature,
+          stream: false,
+          messages,
+        }),
       },
     );
-  const body = await response.json();
-  const content = body.choices?.[0]?.message?.content;
-  if (typeof content !== "string" || content.length > 18000)
-    throw new Error("invalid-proposal");
-  const parsed = JSON.parse(
-    content.replace(/^\s*```(?:json)?\s*/, "").replace(/\s*```\s*$/, ""),
-  );
-  return { ...validateProposal(parsed), usage: body.usage?.total_tokens || 0 };
+    if (!response.ok)
+      throw Object.assign(
+        new Error(
+          response.status === 429
+            ? "Tu cómplice necesita una pausa. Inténtalo más tarde."
+            : "El asistente no está disponible en este momento. Puedes seguir escribiendo tu carta y volver a intentarlo más tarde.",
+        ),
+        {
+          status: response.status === 429 ? 429 : 502,
+          code: [401, 403].includes(response.status)
+            ? "provider_auth"
+            : response.status === 429 ? "provider_limit" : "provider_error",
+          providerStatus: response.status,
+        },
+      );
+    const body = await response.json();
+    const tokens = body.usage?.total_tokens;
+    if (Number.isSafeInteger(tokens) && tokens >= 0) usage += tokens;
+    if (body.choices?.[0]?.message?.tool_calls?.length ||
+        body.choices?.[0]?.message?.function_call ||
+        ["length", "tool_calls", "content_filter"].includes(body.choices?.[0]?.finish_reason))
+      throw new Error("invalid-proposal");
+    const content = body.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || content.length > 18000)
+      throw new Error("invalid-proposal");
+    return JSON.parse(
+      content.replace(/^\s*```(?:json)?\s*/, "").replace(/\s*```\s*$/, ""),
+    );
+  }
+  try {
+    const parsed = await complete([
+      { role: "system", content: LETTER_STYLE },
+      ...LETTER_EXAMPLE,
+      ...conversation,
+      { role: "user", content: JSON.stringify(request) },
+    ], 2800, 0.7);
+    if (parsed?.outOfScope === true) throw scopeError();
+    const proposal = validateProposal(parsed);
+    assertScopeText(proposal);
+    // Separate context: the verifier receives data, never the conversation as roles.
+    // An unavailable or malformed verifier must not release unchecked text.
+    const verdict = await complete([
+      { role: "system", content: SCOPE_POLICY },
+      { role: "user", content: JSON.stringify({ request, history: conversation, proposal }) },
+    ], 80, 0);
+    if (!verdict || Array.isArray(verdict) || Object.keys(verdict).length !== 1 ||
+        typeof verdict.allowed !== "boolean")
+      throw Object.assign(new Error("No pudimos revisar esta idea. Inténtalo de nuevo; tu carta está a salvo."),
+        { status: 503, code: "assistant_review" });
+    if (!verdict.allowed) throw scopeError();
+    return { ...proposal, usage };
+  } catch (error) {
+    error.usage = usage;
+    throw error;
+  }
 }

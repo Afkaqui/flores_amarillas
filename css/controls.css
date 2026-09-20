@@ -324,7 +324,7 @@ summary:focus-visible {
   border: 0;
   padding: 12px 0;
   min-height: 210px;
-  font-size: 20px;
+  font: 400 21px/1.55 var(--fuente-carta);
 }
 .creator .letter-paper {
   margin-bottom: 20px;
@@ -332,6 +332,13 @@ summary:focus-visible {
 }
 .creator .letter-paper > span {
   font-size: 19px;
+}
+.title,
+.modal-title,
+.reveal-title,
+.creator-step h3,
+.preview-name {
+  font-weight: 600;
 }
 .creator .assistant-selection textarea {
   font-size: 18px;
@@ -455,6 +462,142 @@ summary:focus-visible {
 .creator-preview .preview-caption {
   font-size: 22px;
   margin: 12px 0 0;
+}
+
+.creator.letter-mode .creator-heading .eyebrow,
+.creator.letter-mode .step-number {
+  display: none;
+}
+.creator.letter-mode {
+  height: 100%;
+}
+.creator.letter-mode .creator-layout {
+  flex: 1;
+  overflow-anchor: none;
+}
+.creator.letter-mode .creator-heading .modal-title {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+.creator.letter-mode .creator-steps {
+  margin-bottom: 16px;
+}
+.creator.letter-mode .step-description {
+  margin-bottom: 16px;
+}
+.creator.letter-mode .creator-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.creator .letter-paper textarea {
+  min-height: 160px;
+  height: 160px;
+}
+.creator .letter-paper {
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.creator .letter-inspiration > p {
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+.creator .letter-inspiration .complice-invite {
+  margin-bottom: 0;
+}
+.creator .letter-details .details-heading {
+  margin-bottom: 10px;
+}
+.creator .letter-details .detail-card {
+  margin-bottom: 8px;
+}
+.creator .letter-details summary {
+  min-height: 68px;
+  padding: 12px;
+  gap: 10px;
+}
+.creator .letter-details summary b {
+  font-size: 14px;
+}
+.creator .letter-details summary small {
+  margin-top: 2px;
+  font-size: 12px;
+}
+.creator .letter-details .reply-choice {
+  margin-top: 12px;
+  padding: 12px;
+}
+.creator .letter-details .reply-choice b {
+  font-size: 14px;
+}
+.creator .drawing-detail .detail-icon {
+  background: #f6ecee;
+  color: #b07b89;
+}
+.creator .memories-editor .detail-icon {
+  background: #f3f5ed;
+  color: #819576;
+}
+.creator .photo-detail .detail-icon {
+  background: #f9ede8;
+  color: #c08b78;
+}
+.creator .voice-detail .detail-icon {
+  background: #f1edf6;
+  color: #9584ae;
+}
+.creator .drawing-detail .drawing-editor {
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 16px;
+}
+.creator .drawing-detail .drawing-list:not(:empty) {
+  padding: 16px;
+  margin: 0;
+  border-top: 1px solid #e4dfd1;
+}
+.creator .drawing-detail .drawing-list:empty {
+  display: none;
+}
+.creator .letter-details > .media-status:empty {
+  display: none;
+}
+.creator .letter-details .detail-card {
+  overflow-anchor: none;
+}
+.creator .letter-details .detail-plus {
+  transition: transform 280ms ease;
+}
+.creator .letter-details summary[aria-expanded="false"] .detail-plus {
+  transform: rotate(0deg);
+}
+@container (min-width: 761px) {
+  .creator.letter-mode:not(.assistant-mode) .creator-layout {
+    overflow: hidden;
+  }
+  .creator.letter-mode:not(.assistant-mode) .creator-content,
+  .creator.letter-mode [data-panel="2"],
+  .creator.letter-mode .letter-workspace {
+    height: 100%;
+    min-height: 0;
+  }
+  .creator.letter-mode .letter-main,
+  .creator.letter-mode .letter-details {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    overflow-anchor: none;
+    scrollbar-width: thin;
+    scrollbar-color: #becbb5 transparent;
+    scrollbar-gutter: stable;
+    padding: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .creator .letter-details .detail-plus {
+    transition: none;
+  }
 }
 
 @container (max-width: 760px) {
@@ -629,4 +772,12 @@ summary:focus-visible {
 .creator.assistant-mode #gift-cancel {
   width: auto;
   margin-left: auto;
+}
+.photo-missing-notice {
+  margin: 0;
+  padding: 1.5rem 2.75rem 1.5rem 1rem;
+  color: var(--texto);
+  background: #f2eee5;
+  font-size: .875rem;
+  line-height: 1.5;
 }
