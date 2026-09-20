@@ -1,5 +1,7 @@
 import { track, startVisitMetrics } from "./metrics.js";
 import { setIconContent } from "./icons.js";
+import { mountFlowerReasons } from "./flower-reasons.js";
+import { openEnvelope } from "./envelope.js";
 import * as THREE from "three";
 import anime from "animejs";
 import { GardenFallback } from "./garden-fallback.js";
@@ -32,6 +34,15 @@ import { normalizeGift, DEFAULT_MESSAGE, OCCASIONS } from "../shared/gift.js";
 import { bouquetSVG, guardarPostal } from "./postcard.js";
 anime.suspendWhenDocumentHidden = false;
 startVisitMetrics();
+const flowerReasons = mountFlowerReasons($("#memory-list"));
+const giftDock = $("#gift-dock");
+function fitLetterAboveDock() {
+  if (!giftDock.getClientRects().length) return;
+  const clearance = Math.ceil(innerHeight - giftDock.getBoundingClientRect().top + 12);
+  document.documentElement.style.setProperty("--gift-dock-clearance", `${clearance}px`);
+}
+new ResizeObserver(fitLetterAboveDock).observe(giftDock);
+window.addEventListener("resize", fitLetterAboveDock, { passive: true });
 
 const STORE = "flores-jardin-v2",
   DRAFT = "flores-carta-v2",
@@ -466,52 +477,32 @@ $("#reset-confirm").addEventListener("click", () => {
   toast("Un nuevo comienzo. Tu carta sigue guardada.");
 });
 
-let memoryTimer = null,
-  memoryOrigin = null;
 function closeMemory(restoreFocus = true) {
-  clearTimeout(memoryTimer);
-  memoryTimer = null;
-  const popover = $("#memory-popover");
-  const hadFocus = popover.contains(document.activeElement);
-  setVisible("#memory-popover", false);
-  if (restoreFocus && hadFocus && memoryOrigin?.isConnected &&
-      !memoryOrigin.closest("[inert]") && memoryOrigin.getClientRects().length)
-    memoryOrigin.focus({ preventScroll: true });
-  memoryOrigin = null;
+  flowerReasons.collapse(restoreFocus);
 }
-function showMemory(text) {
+async function showMemory(text) {
   if (document.querySelector(".modal:not(.hidden)")) return;
-  closeMemory();
-  memoryOrigin = document.activeElement;
-  $("#memory-text").textContent = text;
-  setVisible("#memory-popover", true);
-  $("#memory-dismiss").focus({ preventScroll: true });
-  memoryTimer = setTimeout(closeMemory, 8000);
+  if ($("#card-layer").classList.contains("hidden")) await showCard(false);
+  if ($("#card-layer").classList.contains("hidden") ||
+      document.querySelector(".modal:not(.hidden)")) return;
+  flowerReasons.setReasons(current.recuerdos);
+  flowerReasons.revealText(text);
 }
-$("#memory-close").addEventListener("click", () => closeMemory());
-$("#memory-dismiss").addEventListener("click", () => closeMemory());
-document.addEventListener("pointerdown", (event) => {
-  if (!$("#memory-popover").contains(event.target)) closeMemory(false);
-}, { capture: true });
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !$("#memory-popover").classList.contains("hidden")) {
-    event.preventDefault();
-    event.stopPropagation();
-    closeMemory();
-  }
-});
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) closeMemory(false);
-});
-function showCard(animate = true) {
+let cardEntry = 0;
+let cardMotion = null;
+async function showCard(animate = true) {
+  const entry = ++cardEntry;
+  cardMotion?.cancel();
+  cardMotion = null;
+  const layer = $("#card-layer");
+  const entering = layer.classList.contains("hidden");
+  const dockEntering = giftDock.classList.contains("hidden");
   setVisible("#btn-share", true);
   $("#c-to").textContent = current.para || "ti";
   $("#c-from").textContent = current.de || "alguien que te quiere";
   $("#c-occasion").textContent = OCCASIONS[current.ocasion];
   creator.renderLetter(current);
-  setVisible("#card-layer", true);
-  setVisible("#gift-dock", true);
-  if (animate) escribir($("#c-msg"), current.mensaje);
+  if (animate) escribir($("#c-msg"), current.mensaje, { delay: entering ? 1000 : 350 });
   else {
     completarCarta();
     $("#c-msg").textContent = current.mensaje;
@@ -527,21 +518,38 @@ function showCard(animate = true) {
   $("#btn-back").textContent = guest
     ? "Crear mi propio regalo"
     : "Volver al jardín";
-  const memories = $("#memory-list");
-  memories.replaceChildren();
-  current.recuerdos.forEach((text, i) => {
-    const button = document.createElement("button");
-    setIconContent(button, "flower");
-    button.setAttribute("aria-label", "Descubrir razón " + (i + 1));
-    button.addEventListener("click", () => showMemory(text));
-    memories.appendChild(button);
-  });
-  if (current.recuerdos.length) {
-    const hint = document.createElement("span");
-    hint.textContent = "Cada flor guarda algo bonito";
-    memories.appendChild(hint);
+  flowerReasons.setReasons(current.recuerdos);
+  if (entering) $(".card").scrollTop = 0;
+  setVisible("#gift-dock", true);
+  fitLetterAboveDock();
+  if (dockEntering && !reducedMotion.matches)
+    giftDock.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: 450,
+      delay: 350,
+      easing: "ease-out",
+      fill: "backwards",
+    });
+  setVisible("#card-layer", true);
+  if (entering && !reducedMotion.matches) {
+    const motion = layer.animate(
+      [{ opacity: 0, transform: "translateY(18px)" },
+       { opacity: 1, transform: "translateY(0)" }],
+      { duration: 800, easing: "cubic-bezier(.22,.61,.36,1)", fill: "both" },
+    );
+    cardMotion = motion;
+    let timeout;
+    await Promise.race([
+      motion.finished.catch(() => {}),
+      new Promise((resolve) => { timeout = setTimeout(resolve, 950); }),
+    ]);
+    clearTimeout(timeout);
+    if (cardMotion === motion) {
+      motion.cancel();
+      cardMotion = null;
+    }
   }
-  memories.classList.toggle("hidden", !current.recuerdos.length);
+  if (entry !== cardEntry || layer.classList.contains("hidden") ||
+      document.querySelector(".modal:not(.hidden)")) return;
   $("#card-heading").tabIndex = -1;
   $("#card-heading").focus({ preventScroll: true });
 }
@@ -564,8 +572,9 @@ async function presentGift(data, guest = false) {
     await garden.presentarRamo(data);
     lluviaDePetalos(22);
     setMode("ramo");
-    garden.vistaRamo(0);
-    showCard();
+    await ocultar($("#preparing"), { duracion: 180 });
+    await pause(300);
+    await showCard();
   } finally {
     setVisible("#preparing", false);
     busy = false;
@@ -616,12 +625,15 @@ $("#gift-form").addEventListener("submit", async (e) => {
 });
 $("#btn-skip").addEventListener("click", completarCarta);
 $("#btn-card-close").addEventListener("click", () => {
+  cardEntry++;
+  cardMotion?.cancel();
+  cardMotion = null;
   completarCarta();
   setVisible("#card-layer", false);
   $("#btn-letter").focus();
 });
 $("#btn-letter").addEventListener("click", () => {
-  if (!busy) showCard(false);
+  if (!busy && !cardMotion) showCard(false);
 });
 $("#btn-edit").addEventListener("click", () => {
   fillForm(current);
@@ -738,9 +750,8 @@ $("#btn-open").addEventListener("click", async () => {
     registrarApertura(received.id);
     opened = true;
   }
-  $("#btn-open").classList.add("opening");
-  await pause(850);
-  await ocultar($("#reveal"));
+  await openEnvelope($("#btn-open"), reducedMotion.matches);
+  await ocultar($("#reveal"), { duracion: 500 });
   busy = false;
   await presentGift(received, true);
 });
@@ -754,6 +765,7 @@ async function start() {
     setMode("regalo");
     setAmbient(current.ambiente);
     $("#envelope-to").textContent = current.para;
+    $(".envelope-paper").classList.toggle("long-name", Array.from(current.para).length > 18);
     $("#reveal-title").textContent = current.para + ", este jardín es para ti.";
     $("#reveal-sub").textContent = current.de
       ? current.de + " te dejó flores y unas palabras del corazón."

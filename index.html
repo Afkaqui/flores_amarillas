@@ -71,13 +71,14 @@
         z-index: 60;
       }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=20260920-assistant-errors" />
-    <link rel="stylesheet" href="/css/controls.css?v=20260915-device-ambient" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260920-soft-arrival" />
+    <link rel="stylesheet" href="/css/controls.css?v=20260920-inline-flowers" />
     <script type="importmap">
       {
         "imports": {
-          "/js/postcard.js": "/js/postcard.js?v=20260915-svg-icons",
-          "/js/creator.js": "/js/creator.js?v=20260920-letter-voice",
+          "/js/ui.js": "/js/ui.js?v=20260920-gentle-writing",
+          "/js/postcard.js": "/js/postcard.js?v=20260920-stationery",
+          "/js/creator.js": "/js/creator.js?v=20260920-inline-flowers",
           "/js/media-player.js": "/js/media-player.js?v=20260915-svg-icons",
           "/js/icons.js": "/js/icons.js?v=20260915-svg-icons",
           "/js/audio.js": "/js/audio.js?v=20260914-visible-audio",
@@ -520,14 +521,14 @@
                     <summary>
                       <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span
                       ><span
-                        ><b>Tres cosas que adoro de ti</b
+                        ><b>Pequeñas cosas que adoro de ti</b
                         ><small
                           >Una sorpresa escondida en cada flor.</small
                         ></span
                       ><span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
                     </summary>
                     <div class="detail-body">
-                      <p>Las descubrirá al tocar las flores del ramo.</p>
+                      <p>Escribe una, dos o tres razones. Las descubrirá al tocar las flores, junto a tu carta.</p>
                       <label class="reason-field"
                         ><span>01</span
                         ><input
@@ -535,7 +536,7 @@
                           id="f-memory-1"
                           maxlength="60"
                           aria-label="Primera razón"
-                          placeholder="Tu manera de hacerme reír"
+                          placeholder="Por hacerme reír en un mal día"
                       /></label>
                       <label class="reason-field"
                         ><span>02</span
@@ -544,7 +545,7 @@
                           id="f-memory-2"
                           maxlength="60"
                           aria-label="Segunda razón"
-                          placeholder="Lo fácil que es estar contigo"
+                          placeholder="Por escucharme sin prisa"
                       /></label>
                       <label class="reason-field"
                         ><span>03</span
@@ -553,7 +554,7 @@
                           id="f-memory-3"
                           maxlength="60"
                           aria-label="Tercera razón"
-                          placeholder="Todo lo que nos queda por vivir"
+                          placeholder="Por esos paseos sin prisa contigo"
                       /></label>
                     </div>
                   </details>
@@ -855,8 +856,10 @@
         </p>
         <button id="btn-open" class="envelope" aria-label="Abrir mi regalo">
           <span class="envelope-paper"
-            ><span>Para</span><b id="envelope-to">ti</b
-            ><small>con mucho cariño</small></span
+            ><span>Solo para ti</span><b id="envelope-to">ti</b
+            ><small>Unas flores.<br />Todo mi cariño.</small>
+            <img class="envelope-sprig" src="/shared/letter-sprig.svg" alt="" width="120" height="160" />
+            </span
           ><span class="envelope-pocket"></span
           ><span class="envelope-flap"></span
           ><span class="wax-seal" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span>
@@ -882,7 +885,10 @@
             <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#minus"></use></svg>
           </button>
         </div>
-        <h2 class="card-to" id="card-heading">Para <b id="c-to">ti</b>,</h2>
+        <div class="letter-salutation">
+          <h2 class="card-to" id="card-heading"><span class="card-address">Para </span><b id="c-to">ti</b></h2>
+          <img class="letter-sprig" src="/shared/letter-sprig.svg" alt="" width="120" height="160" />
+        </div>
         <p class="card-msg" id="c-msg"></p>
         <button class="text-button skip-writing" id="btn-skip">
           Leer la carta completa
@@ -927,7 +933,7 @@
               Copiar enlace para enviárselo <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg>
             </button>
             <button type="button" id="reply-open" class="btn btn-soft hidden">
-              Dejarle unas palabras <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+              Quiero decirte algo también <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
             </button>
             <div id="reply-editor" class="reply-editor hidden">
               <div class="reply-editor-heading">
@@ -1073,15 +1079,6 @@
     <div id="preparing" class="preparing hidden" role="status">
       <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span> reuniendo un poquito de amor…
     </div>
-    <div id="memory-popover" class="memory-popover hidden" role="dialog" aria-labelledby="memory-heading" aria-describedby="memory-text">
-      <button type="button" class="modal-close" id="memory-dismiss" aria-label="Cerrar razón de la flor"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg></button>
-      <span id="memory-heading">UNA FLOR, UNA RAZÓN</span>
-      <p id="memory-text"></p>
-      <button class="text-button" id="memory-close">
-        Guardar en el corazón <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
-      </button>
-      <small class="memory-timeout">Se cierra en 8 segundos</small>
-    </div>
 
     <div
       id="help-modal"
@@ -1173,6 +1170,6 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="yt" aria-hidden="true"></div>
-    <script type="module" src="/js/main.js?v=20260915-entry-flow"></script>
+    <script type="module" src="/js/main.js?v=20260920-gentle-writing"></script>
   </body>
 </html>

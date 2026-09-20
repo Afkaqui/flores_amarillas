@@ -95,11 +95,13 @@ let finishWriting = () => {};
 export function completarCarta() {
   finishWriting();
 }
-export function escribir(el, texto) {
+export function escribir(el, texto, { delay = 350 } = {}) {
   finishWriting();
-  const chars = Array.from(texto);
+  const chars = typeof Intl.Segmenter === "function"
+    ? Array.from(new Intl.Segmenter("es", { granularity: "grapheme" }).segment(texto), (part) => part.segment)
+    : Array.from(texto);
   let timer;
-  const start = performance.now();
+  let count = 0;
   const finish = () => {
     clearTimeout(timer);
     el.textContent = texto;
@@ -108,18 +110,27 @@ export function escribir(el, texto) {
   };
   finishWriting = finish;
   el.setAttribute("aria-label", texto);
-  if (reducedMotion.matches) {
+  if (reducedMotion.matches || document.hidden || !chars.length) {
     finish();
     return;
   }
+  el.textContent = "";
   $("#btn-skip").classList.remove("hidden");
   const tick = () => {
-    const count = Math.floor((performance.now() - start) / 19);
-    if (count >= chars.length || document.hidden) return finish();
+    if (document.hidden) return finish();
+    count++;
     el.textContent = chars.slice(0, count).join("");
-    timer = setTimeout(tick, 30);
+    if (count >= chars.length) return finish();
+    const char = chars[count - 1];
+    const wait = /\n/.test(char) ? 600
+      : /[.!?…]/.test(char) && chars[count] !== "." ? 480
+      : /[,;:]/.test(char) ? 240
+      : /\s/.test(char) ? 40
+      : 70;
+    // Advance one character at a time, even when a slow device delays a tick.
+    timer = setTimeout(tick, wait);
   };
-  tick();
+  timer = setTimeout(tick, delay);
 }
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) finishWriting();

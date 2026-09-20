@@ -1,4 +1,7 @@
 /* Shared control sizes and dialog layout. Loaded after decorative styles. */
+body[data-mode="ramo"] #card-layer {
+  bottom: max(85px, var(--gift-dock-clearance, 105px));
+}
 body[data-ambiente="noche"] #loader {
   background: linear-gradient(170deg, #192641, #302c43);
 }
@@ -23,7 +26,6 @@ body[data-ambiente="noche"] .loader-text { color: #dfd3b7; }
 .modal-close > .ui-icon,
 .creator .drawn-flower button .ui-icon,
 .photo-remove > .ui-icon,
-#memory-list button > .ui-icon,
 .voice-play .ui-icon {
   width: 20px;
   height: 20px;
@@ -64,8 +66,6 @@ body[data-ambiente="noche"] .loader-text { color: #dfd3b7; }
 @media (prefers-reduced-motion: reduce) {
   .ui-icon.is-spinning { animation: none; }
 }
-.memory-popover { z-index: 35; padding: 68px 24px 24px; max-height: calc(100dvh - 32px); overflow-y: auto; }
-.memory-timeout { display: block; margin-top: 12px; color: #8c806d; font-size: 12px; }
 .share-flower { display: block; color: #b99650; font-size: 36px; margin-bottom: 12px; }
 .share-note { margin-top: 24px; }
 .share-note textarea { background: #f5f7ef; min-height: 132px; line-height: 1.65; }

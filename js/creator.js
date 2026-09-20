@@ -997,9 +997,9 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       $("#reply-context").textContent = owner
         ? "Este regalo lo creaste tú. Comparte su enlace; su respuesta aparecerá aquí."
         : data.hasReplied
-          ? "Tu respuesta ya está aquí, junto a esta carta"
+          ? "Tu respuesta ya acompaña esta carta."
           : activeGift?.permitirRespuesta
-            ? "Puedes dejarle un detalle de vuelta, sin crear una cuenta."
+            ? "Si estas flores te hicieron sonreír, puedes dejarle unas palabras aquí."
             : "Esta carta no tiene respuestas habilitadas.";
       const version = JSON.stringify(data.replies);
       if (version !== replyVersion) {
@@ -1029,17 +1029,14 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
           item.append(drawing, words);
           list.append(item);
         }
-        if (!data.replies.length) {
+        if (!data.replies.length && owner) {
           const empty = document.createElement("p");
           empty.className = "reply-empty";
-          empty.textContent = owner
-            ? "Todavía no hay respuestas. Aquí guardaremos ese poquito de cariño que vuelva."
-            : "Tu respuesta puede ser la primera.";
+          empty.textContent = "Cuando te responda, encontrarás sus palabras junto a tu carta.";
           list.append(empty);
         }
       }
-      $("#reply-read-status").textContent =
-        "Se actualiza mientras lees esta carta.";
+      $("#reply-read-status").textContent = "";
     } catch (e) {
       $("#reply-read-status").textContent =
         e.message + " Puedes usar el botón de actualizar para volver a intentarlo.";
@@ -1073,7 +1070,8 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
   $("#reply-open").onclick = () => {
     show("#reply-editor", true);
     show("#reply-open", false);
-    $("#reply-name").focus();
+    const field = $("#reply-name").value.trim() ? $("#reply-note") : $("#reply-name");
+    field.focus();
   };
   $("#reply-cancel").onclick = () => {
     show("#reply-editor", false);

@@ -89,9 +89,10 @@ async function loadLetterFonts() {
 /** Lay out the whole letter before painting so no attachment is clipped. */
 export async function renderPostal(value) {
   const d = normalizeGift(value);
-  const [photos, drawings] = await Promise.all([
+  const [photos, drawings, sprig] = await Promise.all([
     Promise.all(d.fotos.map(loadImage)),
     Promise.all(d.dibujos.map((drawing) => loadSVG(drawingSVG(drawing)))),
+    loadImage("/shared/letter-sprig.svg"),
     loadLetterFonts(),
   ]);
   const canvas = document.createElement("canvas");
@@ -168,13 +169,29 @@ export async function renderPostal(value) {
     x: inset + 38,
     maxWidth: content - 38,
   });
-  y += 38;
-  paragraph("Para " + d.para + ",", {
-    font: "400 34px Fraunces",
-    color: d.ambiente === "noche" ? "#504950" : "#34513f",
-    line: 43,
+  paint.push(() => {
+    ctx.strokeStyle = "#b9a07535";
+    ctx.beginPath();
+    ctx.moveTo(inset, 88);
+    ctx.lineTo(width - inset, 88);
+    ctx.stroke();
   });
-  y += 30;
+  y += 36;
+  const salutationTop = y;
+  paint.push(() => ctx.drawImage(sprig, width - inset - 94, salutationTop - 5, 94, 125));
+  paragraph("PARA", {
+    font: "11px Outfit",
+    color: "#927f66",
+    line: 18,
+  });
+  y += 8;
+  paragraph(d.para, {
+    font: "400 36px Fraunces",
+    color: d.ambiente === "noche" ? "#504950" : "#34513f",
+    line: 44,
+    maxWidth: content - 120,
+  });
+  y = Math.max(y, salutationTop + 120) + 26;
   paragraph(d.mensaje, {
     font: "italic 400 27px Fraunces",
     color: "#705439",
@@ -183,13 +200,13 @@ export async function renderPostal(value) {
   y += 38;
   paragraph("Con todo mi cariño,", {
     font: "13px Outfit",
-    color: "#a18a69",
+    color: "#927f69",
     line: 20,
   });
   y += 6;
   paragraph(d.de || "alguien que te quiere", {
     font: "32px Caveat",
-    color: "#8b6650",
+    color: "#986d64",
     line: 39,
   });
   y += 38;
@@ -345,7 +362,10 @@ export async function renderPostal(value) {
   canvas.width = width * 2;
   canvas.height = Math.ceil(y * 2);
   ctx.scale(2, 2);
-  ctx.fillStyle = "#fffaf0";
+  const stationery = ctx.createLinearGradient(0, 0, width, y);
+  stationery.addColorStop(0, "#fffefa");
+  stationery.addColorStop(1, "#faf7ef");
+  ctx.fillStyle = stationery;
   ctx.fillRect(0, 0, width, y);
   ctx.strokeStyle = "#b9a07530";
   ctx.lineWidth = 1;
