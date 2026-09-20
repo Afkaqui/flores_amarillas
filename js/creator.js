@@ -567,7 +567,6 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
       selectedOption = null;
       show("#assistant-selection", false);
       $("#assistant-apply").disabled = true;
-      $("#assistant-proposal-text").textContent = data.explanation;
       options.forEach((option, i) => {
         const card = document.createElement("button");
         card.type = "button";
@@ -631,7 +630,13 @@ export function initCreator({ getGift, setGift, save, getReceived, onExit }) {
         button.onclick = () => {
           if (request) return;
           $("#assistant-input").value = item.prompt;
-          $("#assistant-send").click();
+          if (item.needsDetail) {
+            const input = $("#assistant-input");
+            input.value = item.prompt.trimEnd() + " ";
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+            $("#assistant-status").textContent = "Completa ese detalle y lo incorporamos a tu carta.";
+          } else $("#assistant-send").click();
         };
         followups.append(button);
       });

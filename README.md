@@ -55,6 +55,8 @@ Si este jardín te sacó una sonrisa, puedes apoyarlo con una **Star** en la par
 
 El frontend usa módulos del navegador e importmap; no necesita un paso de compilación. Las claves y el acceso al asistente permanecen en el servidor.
 
+La guía de escritura del asistente está en `server/letter-style.js`: conserva la intención de quien escribe, propone cartas con voces distintas y pide detalles reales para personalizarlas. Sus criterios editoriales toman como referencia [Humanizer](https://github.com/blader/humanizer/blob/main/SKILL.md) y la [guía de cartas de amor de Hallmark](https://ideas.hallmark.com/articles/valentines-day-ideas/how-to-write-a-love-letter/).
+
 ## Ejecutarlo en local
 
 Requiere Node.js 20 o superior, PostgreSQL y FFmpeg para las notas de voz.

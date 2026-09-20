@@ -180,6 +180,19 @@ test("contextual choices validate every patch and bound follow-up actions", () =
   assert.throws(() => validateProposal({ options: [] }));
 });
 
+test("followups distinguish a detail to complete from an immediate refinement", () => {
+  const result = validateProposal({
+    options: [{ patch: { mensaje: "Gracias por estar." } }],
+    followups: [
+      { label: "Un gesto suyo", prompt: "Me hace sonreír cuando: ", needsDetail: true },
+      { label: "Más breve", prompt: "Hazla más breve", needsDetail: false },
+      { label: "Otra idea", prompt: "Otra idea", needsDetail: "true" },
+    ],
+  });
+  assert.deepEqual(result.followups.map((item) => item.needsDetail), [true, false, false]);
+  assert.equal(result.followups[0].prompt, "Me hace sonreír cuando:");
+});
+
 test("photo memories keep captions attached to permitted files and survive round-trip", () => {
   const first = "/media/" + "a".repeat(48) + ".webp",
     second = "/media/" + "b".repeat(48) + ".webp";
