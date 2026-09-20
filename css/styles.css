@@ -74,15 +74,13 @@ button {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(
-      90deg,
-      #fffdf9f5 0%,
-      #fffdf9dc 25%,
-      #fffdf94d 48%,
-      transparent 64%
-    ),
-    linear-gradient(0deg, transparent, transparent 28%);
+  background: linear-gradient(
+    90deg,
+    #b8d5c7d9 0%,
+    #bcd8cccc 22%,
+    #bfd8cf70 42%,
+    #bfd8cf00 65%
+  );
   z-index: 2;
   transition: opacity 0.7s;
 }
@@ -163,6 +161,15 @@ body:not([data-mode="intro"]) .vignette {
   color: var(--rosa);
   font-size: 17px;
   margin-right: 6px;
+}
+body[data-ambiente="atardecer"][data-mode="intro"] .title em {
+  color: #925465;
+}
+body[data-ambiente="atardecer"][data-mode="intro"] :is(.lede, .eyebrow, .hint-small) {
+  color: #2e5141;
+}
+body[data-ambiente="atardecer"][data-mode="intro"] .intro-actions .text-button {
+  color: #34543f;
 }
 .hero-note {
   position: absolute;
@@ -1439,10 +1446,10 @@ body[data-ambiente="noche"] .music-choice {
   .vignette {
     background: linear-gradient(
       180deg,
-      #fffdf9f5 0%,
-      #fffdf9ed 33%,
-      #fffdf952 58%,
-      transparent 80%
+      #bad6c9eb 0%,
+      #bed8cfd4 32%,
+      #bfd8cf66 57%,
+      #bfd8cf00 80%
     );
   }
   body[data-ambiente="noche"] .vignette {
