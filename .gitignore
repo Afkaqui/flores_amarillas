@@ -1,0 +1,32 @@
+# Credenciales del VPS y de la base: nunca al repositorio.
+.env
+.env.*
+!.env.example
+
+node_modules/
+server/node_modules/
+server/public/
+npm-debug.log*
+
+# Scratch
+prueba_*.html
+*.log
+.DS_Store
+Thumbs.db
+
+# Infraestructura privada y notas locales
+deploy/
+docs/
+
+# Config local de herramientas
+.claude/
+
+# Local analysis
+.codegraph/
+.serena/
+
+# Local video diagnostics
+preview-output/
+
+# Persistent local media
+server/media/

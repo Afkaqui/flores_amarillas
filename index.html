@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Flores para ti · Regala flores amarillas y una carta</title>
+    <meta
+      name="description"
+      content="Crea un ramo de flores amarillas con una carta, fotos y tu voz. Comparte un regalo virtual por WhatsApp, gratis y sin registro."
+    />
+    <meta name="theme-color" content="#355540" />
+    <link rel="canonical" href="https://floresparati.site/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta property="og:site_name" content="Flores para ti" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Flores para ti · Un detalle que florece" />
+    <meta
+      property="og:description"
+      content="Un ramo de flores amarillas, una carta y todo lo que sientes. Prepara su sorpresa y compártela con esa persona especial."
+    />
+    <meta property="og:url" content="https://floresparati.site/" />
+    <meta
+      property="og:image"
+      content="https://floresparati.site/og/portada.png?v=20260920"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="Flores para ti: un ramo amarillo con lazo rosa y una carta para alguien especial" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Flores para ti · Un detalle que florece" />
+    <meta name="twitter:description" content="Regala flores amarillas, una carta y un pedacito de lo que sientes. Gratis y sin registro." />
+    <meta name="twitter:image" content="https://floresparati.site/og/portada.png?v=20260920" />
+    <meta name="twitter:image:alt" content="Un ramo de flores amarillas y una carta para alguien especial" />
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"WebSite","name":"Flores para ti","alternateName":"Flores Amarillas","url":"https://floresparati.site/","inLanguage":"es","description":"Crea y comparte un ramo virtual de flores amarillas con una carta, fotos y tu voz.","creator":[{"@type":"Person","name":"Eduardo Lucas","url":"https://github.com/lucsducks"},{"@type":"Person","name":"Afkaqui","url":"https://github.com/Afkaqui"}]}
+    </script>
+    <link
+      rel="icon"
+      href="/shared/favicon.svg?v=20260915"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Outfit:wght@300;400;500;600&family=Caveat:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Evita mostrar las capas superpuestas antes de cargar el CSS. */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #bfe3f5;
+        overflow: hidden;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .modal,
+      .screen {
+        position: fixed;
+        inset: 0;
+      }
+      #loader {
+        background: linear-gradient(170deg, #fff3cf, #f7d77a);
+        z-index: 60;
+      }
+    </style>
+    <link rel="stylesheet" href="/css/styles.css?v=20260920-credits" />
+    <link rel="stylesheet" href="/css/controls.css?v=20260915-device-ambient" />
+    <script type="importmap">
+      {
+        "imports": {
+          "/js/postcard.js": "/js/postcard.js?v=20260915-svg-icons",
+          "/js/creator.js": "/js/creator.js?v=20260915-svg-icons",
+          "/js/media-player.js": "/js/media-player.js?v=20260915-svg-icons",
+          "/js/icons.js": "/js/icons.js?v=20260915-svg-icons",
+          "/js/audio.js": "/js/audio.js?v=20260914-visible-audio",
+          "/js/garden.js": "/js/garden.js?v=20260915-bees",
+          "/js/bichos.js": "/js/bichos.js?v=20260915-bees",
+          "/js/render-quality.js": "/js/render-quality.js?v=20260915-mobile-sharp",
+          "/js/share.js": "/js/share.js?v=20260914-memory-close",
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+          "animejs": "https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.es.js"
+        }
+      }
+    </script>
+  </head>
+  <body data-ambiente="atardecer" data-mode="intro">
+    <canvas
+      id="scene"
+      aria-label="Jardín de flores amarillas. Puedes arrastrar para mirar alrededor."
+    ></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="petal-layer" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div id="loader" class="screen" role="status">
+      <div class="loader-flower" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#aster"></use></svg></div>
+      <p class="loader-text">algo bonito está por florecer</p>
+      <p id="load-error" class="hidden">
+        No pudimos abrir el jardín.
+        <button onclick="location.reload()">Intentar de nuevo</button>
+      </p>
+    </div>
+
+    <header id="hud-top" class="hud hidden">
+      <a class="brand" href="/" aria-label="Flores Amarillas, inicio"
+        ><span class="brand-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#aster"></use></svg></span
+        ><span
+          >flores <strong>amarillas</strong
+          ><small>PEQUEÑOS GESTOS, MUCHO AMOR</small></span
+        ></a
+      >
+      <div class="hud-derecha">
+        <button
+          class="ambient-toggle"
+          id="btn-ambient"
+          aria-label="Cambiar a noche de luciérnagas"
+        >
+          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sun"></use></svg></span>
+          <span id="ambient-label">Tarde de sol</span>
+        </button>
+        <button
+          class="btn-hud"
+          id="btn-sound"
+          aria-label="Activar música"
+          aria-pressed="false"
+          title="Activar música"
+        >
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#music"></use></svg>
+        </button>
+        <button
+          class="btn-hud"
+          id="btn-view"
+          aria-pressed="true"
+          aria-label="Permitir giro suave"
+          title="Permitir giro suave (F)"
+        >
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#rotate"></use></svg>
+        </button>
+        <a class="btn-hud github-link" href="https://github.com/Afkaqui/flores_amarillas" target="_blank" rel="noopener noreferrer" title="Ver el proyecto y darle una estrella en GitHub" aria-label="Ver el proyecto y darle una estrella en GitHub (abre en otra pestaña)"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="none" d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.8-1.33-3.8-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.71 2.62 1.22 3.26.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.55 0-1.22.44-2.22 1.16-3-.12-.28-.51-1.42.11-2.96 0 0 .95-.3 3.08 1.15a10.73 10.73 0 0 1 5.6 0c2.14-1.45 3.08-1.15 3.08-1.15.62 1.54.23 2.68.11 2.96.73.78 1.16 1.78 1.16 3 0 4.31-2.63 5.26-5.14 5.54.4.35.76 1.03.76 2.08v3.11c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/></svg></a>
+        <span class="counter hidden" id="counter"
+          ><b id="counter-num">0</b><span> flores tuyas</span></span
+        >
+      </div>
+    </header>
+
+    <section id="intro" class="screen hidden" aria-labelledby="intro-title">
+      <div class="intro-inner">
+        <p class="eyebrow">
+          <span></span> UN PEQUEÑO JARDÍN PARA ALGUIEN ESPECIAL
+        </p>
+        <h1 class="title" id="intro-title">
+          Hay personas<br />que nos hacen<br /><em>florecer.</em>
+        </h1>
+        <p class="lede">
+          Y merecen un jardín entero.<br />Siembra flores amarillas y regala un
+          pedacito<br class="desktop-break" />
+          de lo que sientes, con una carta de tu corazón.
+        </p>
+        <div class="intro-actions">
+          <button id="btn-enter" class="btn btn-primary">
+            Preparar un regalo <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span></button
+          ><button id="btn-how" class="text-button">
+            Conoce el jardín <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-down"></use></svg></span>
+          </button>
+        </div>
+        <a id="my-gift-open" class="my-gift-open hidden" href="/"
+          >Volver a mi último regalo y sus respuestas <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></a
+        >
+        <p class="hint-small">
+          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></span> Hecho por ti. Guardado para siempre
+          en su recuerdo.
+        </p>
+      </div>
+    </section>
+
+    <footer id="hud-bottom" class="hud hidden">
+      <p class="tip" id="tip">Toca el pasto. Aquí empieza algo bonito.</p>
+      <div class="toolbar">
+        <button class="btn btn-soft" id="btn-seed">
+          Sembrar 5 <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span></button
+        ><button class="btn btn-primary" id="btn-gift">
+          Preparar mi regalo <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span></button
+        ><button
+          class="btn-hud"
+          id="btn-reset"
+          title="Empezar de nuevo"
+          aria-label="Reiniciar jardín"
+        >
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#undo"></use></svg>
+        </button>
+      </div>
+      <span class="save-note" id="save-note"
+        >Tu jardín se guarda en este dispositivo</span
+      >
+    </footer>
+
+    <div
+      id="gift-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gift-title"
+    >
+      <form class="modal-card gift-editor creator" id="gift-form" novalidate>
+        <button
+          type="button"
+          class="modal-close"
+          id="gift-close"
+          aria-label="Cerrar creador"
+        >
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+        </button>
+        <div class="creator-heading">
+          <p class="eyebrow">HECHO POR TI, PARA SU CORAZÓN</p>
+          <h2 class="modal-title" id="gift-title">
+            Un detalle que <em>florece.</em>
+          </h2>
+        </div>
+        <nav class="creator-steps" aria-label="Pasos del regalo">
+          <button type="button" data-step="0" aria-current="step">
+            <span>1</span>Para quién</button
+          ><button type="button" data-step="1"><span>2</span>Su ramo</button
+          ><button type="button" data-step="2"><span>3</span>Tu carta</button>
+        </nav>
+        <div class="creator-layout">
+          <div class="creator-content">
+            <section
+              class="creator-step"
+              data-panel="0"
+              aria-labelledby="step-to-title"
+            >
+              <p class="step-number">EL COMIENZO DE ALGO BONITO</p>
+              <h3 id="step-to-title">¿Quién te hace sonreír?</h3>
+              <p class="step-description">
+                Hay personas que merecen un jardín entero. Empecemos por su
+                nombre.
+              </p>
+              <label class="field"
+                ><span>Este regalo es para</span
+                ><input
+                  id="f-to"
+                  maxlength="28"
+                  placeholder="Su nombre o ese apodo especial"
+                  required
+                  autocomplete="off"
+              /></label>
+              <label class="field"
+                ><span>Con cariño, de</span
+                ><input
+                  id="f-from"
+                  maxlength="28"
+                  placeholder="Tu nombre"
+                  autocomplete="off"
+              /></label>
+              <label class="field"
+                ><span>El motivo</span
+                ><select id="f-occasion">
+                  <option value="primavera">21 de septiembre</option>
+                  <option value="amor">Porque te quiero</option>
+                  <option value="aniversario">Nuestro aniversario</option>
+                  <option value="cumple">Su cumpleaños</option>
+                  <option value="siempre">Porque sí, porque tú</option>
+                </select></label
+              >
+              <button type="button" class="complice-invite" id="assistant-open">
+                <span class="complice-mark"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></span
+                ><span
+                  ><b>Un poquito de inspiración</b
+                  ><small
+                    >Tu cómplice te ayuda a encontrar las palabras.</small
+                  ></span
+                ><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span>
+              </button>
+            </section>
+            <section
+              class="creator-step hidden"
+              data-panel="1"
+              aria-labelledby="step-garden-title"
+            >
+              <p class="step-number">FLORES QUE SE PARECEN A TI</p>
+              <h3 id="step-garden-title">Dale tu toque.</h3>
+              <fieldset class="composition-options">
+                <legend>Su ramo</legend>
+                <label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="sencillo"
+                  /><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower-stem"></use></svg></span><b>Sencillo</b
+                  ><small>Un gesto delicado</small></label
+                ><label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="silvestre"
+                    checked
+                  /><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span><b>Silvestre</b
+                  ><small>Libre y alegre</small></label
+                ><label
+                  ><input
+                    type="radio"
+                    name="composicion"
+                    value="abundante"
+                  /><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#bouquet"></use></svg></span><b>Abundante</b
+                  ><small>Todo mi cariño</small></label
+                >
+              </fieldset>
+              <div class="field-row">
+                <fieldset class="swatches">
+                  <legend>El lazo</legend>
+                  <label
+                    ><input
+                      type="radio"
+                      name="cinta"
+                      value="rosa"
+                      checked
+                    /><span style="--swatch: #b76e79"></span>Rosa</label
+                  ><label
+                    ><input type="radio" name="cinta" value="miel" /><span
+                      style="--swatch: #b97f32"
+                    ></span
+                    >Miel</label
+                  ><label
+                    ><input type="radio" name="cinta" value="lavanda" /><span
+                      style="--swatch: #9383b5"
+                    ></span
+                    >Lavanda</label
+                  >
+                </fieldset>
+                <fieldset class="swatches">
+                  <legend>El papel</legend>
+                  <label
+                    ><input
+                      type="radio"
+                      name="papel"
+                      value="marfil"
+                      checked
+                    /><span style="--swatch: #f5e8d0"></span>Marfil</label
+                  ><label
+                    ><input type="radio" name="papel" value="rosa" /><span
+                      style="--swatch: #ecd3cc"
+                    ></span
+                    >Rosa</label
+                  ><label
+                    ><input type="radio" name="papel" value="kraft" /><span
+                      style="--swatch: #c5a57d"
+                    ></span
+                    >Kraft</label
+                  >
+                </fieldset>
+              </div>
+              <div class="field-row">
+                <label class="field field-range"
+                  ><span>Flores <b id="f-size-val">12</b></span
+                  ><input
+                    id="f-size"
+                    type="range"
+                    min="3"
+                    max="24"
+                    value="12" /></label
+                ><label class="field"
+                  ><span>Su cielo</span
+                  ><select id="f-ambient">
+                    <option value="atardecer">Día luminoso</option>
+                    <option value="noche">Noche de luciérnagas</option>
+                  </select></label
+                >
+              </div>
+            </section>
+            <section
+              class="creator-step hidden"
+              data-panel="2"
+              aria-labelledby="step-letter-title"
+            >
+              <p class="step-number">LO QUE FLORECE POR DENTRO</p>
+              <h3 id="step-letter-title">Ahora, tus palabras.</h3>
+              <p class="step-description">
+                Tus palabras son el regalo. Los pequeños detalles lo hacen muy
+                tuyo.
+              </p>
+              <div class="letter-workspace">
+                <div class="letter-main">
+                  <label class="field letter-paper"
+                    ><span>Querida persona especial…</span
+                    ><textarea
+                      id="f-msg"
+                      maxlength="360"
+                      rows="6"
+                      placeholder="Hay algo que quería decirte…"
+                    ></textarea
+                    ><em class="count"
+                      ><span id="f-msg-count">0</span>/360</em
+                    ></label
+                  >
+                  <div class="letter-inspiration">
+                    <p>¿Por dónde empezar?</p>
+                    <div class="suggestions">
+                      <button type="button" data-message="amor">
+                        <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></span>Te quiero
+                      </button>
+                      <button type="button" data-message="gracias">
+                        <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sun"></use></svg></span>Gracias por estar
+                      </button>
+                      <button type="button" data-message="distancia">
+                        <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span>Te extraño
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      id="assistant-letter"
+                      class="complice-invite"
+                    >
+                      <span class="complice-mark"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></span
+                      ><span
+                        ><b>Encontrémosle las palabras</b
+                        ><small
+                          >Cuéntame algo suyo y elige entre varias ideas.</small
+                        ></span
+                      ><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span>
+                    </button>
+                  </div>
+                  <div class="draw-invite">
+                    <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#pen"></use></svg></span>
+                    <div>
+                      <b>Dibújale algo.</b>
+                      <p>
+                        Un corazón, una carita, ese chiste suyo. Lo encontrará
+                        dentro de la carta.
+                      </p>
+                    </div>
+                    <button type="button" class="btn btn-soft" id="draw-toggle">
+                      Dibujar <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg>
+                    </button>
+                  </div>
+                  <div id="drawing-editor" class="drawing-editor hidden">
+                    <div class="drawing-heading">
+                      <b>Un detalle de tu puño y corazón.</b
+                      ><button
+                        type="button"
+                        class="text-button"
+                        id="draw-hide"
+                        aria-label="Cerrar dibujo"
+                      >
+                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+                      </button>
+                    </div>
+                    <p class="drawing-hint">
+                      Dibuja a tu manera o empieza con una idea. Después hazla
+                      tuya.
+                    </p>
+                    <div
+                      class="drawing-starters"
+                      aria-label="Ideas para empezar"
+                    >
+                      <button type="button" id="draw-template">
+                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower-stem"></use></svg> Una flor
+                      </button>
+                      <button type="button" data-draw-template="heart">
+                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg> Un corazón
+                      </button>
+                      <button type="button" data-draw-template="sparkle">
+                        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg> Un destello
+                      </button>
+                    </div>
+                    <div class="drawing-workspace">
+                      <canvas
+                        id="drawing-canvas"
+                        width="600"
+                        height="600"
+                        aria-label="Dibuja un detalle para la carta con el dedo o mouse"
+                      ></canvas>
+                      <div class="drawing-tools">
+                        <span class="drawing-tool-label">Tu tinta</span>
+                        <div id="ink-colors" aria-label="Color del trazo"></div>
+                        <button
+                          type="button"
+                          id="draw-width"
+                          aria-pressed="false"
+                        >
+                          Trazo grueso</button
+                        ><button type="button" id="draw-undo">Deshacer</button
+                        ><button type="button" id="draw-clear">Limpiar</button>
+                      </div>
+                    </div>
+                    <label class="field"
+                      ><span>Una frase para acompañarlo</span
+                      ><input
+                        id="draw-note"
+                        maxlength="80"
+                        placeholder="Ese abrazo que te debo…" /></label
+                    ><button
+                      type="button"
+                      id="draw-plant"
+                      class="btn btn-primary"
+                    >
+                      Añadir a la carta <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+                    </button>
+                    <p id="draw-status" role="status"></p>
+                  </div>
+                  <div
+                    id="drawing-list"
+                    class="drawing-list"
+                    aria-label="Tus dibujos para la carta"
+                  ></div>
+                </div>
+                <div class="letter-details">
+                  <p class="details-heading">
+                    UN POQUITO MÁS DE TI <span>Todo es opcional</span>
+                  </p>
+                  <details class="detail-card memories-editor">
+                    <summary>
+                      <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span
+                      ><span
+                        ><b>Tres cosas que adoro de ti</b
+                        ><small
+                          >Una sorpresa escondida en cada flor.</small
+                        ></span
+                      ><span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
+                    </summary>
+                    <div class="detail-body">
+                      <p>Las descubrirá al tocar las flores del ramo.</p>
+                      <label class="reason-field"
+                        ><span>01</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-1"
+                          maxlength="60"
+                          aria-label="Primera razón"
+                          placeholder="Tu manera de hacerme reír"
+                      /></label>
+                      <label class="reason-field"
+                        ><span>02</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-2"
+                          maxlength="60"
+                          aria-label="Segunda razón"
+                          placeholder="Lo fácil que es estar contigo"
+                      /></label>
+                      <label class="reason-field"
+                        ><span>03</span
+                        ><input
+                          class="memory-input"
+                          id="f-memory-3"
+                          maxlength="60"
+                          aria-label="Tercera razón"
+                          placeholder="Todo lo que nos queda por vivir"
+                      /></label>
+                    </div>
+                  </details>
+                  <details class="detail-card">
+                    <summary>
+                      <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#image"></use></svg></span
+                      ><span
+                        ><b>Un recuerdo en fotos</b
+                        ><small>Esos momentos que dicen tanto.</small></span
+                      ><span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
+                    </summary>
+                    <div class="detail-body">
+                      <label class="photo-drop" id="photo-drop"
+                        ><input
+                          id="photo-input"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                        /><span class="upload-symbol" aria-hidden="true"
+                          ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span
+                        ><b>Elige tus recuerdos</b
+                        ><span>o arrastra las fotos aquí</span
+                        ><small
+                          >Hasta 3 fotos · JPG, PNG o WebP · 10 MB cada
+                          una</small
+                        ></label
+                      >
+                      <p class="photo-caption-help">
+                        Cada foto puede llevar su propia frase. Así el recuerdo
+                        se cuenta completo.
+                      </p>
+                      <div id="photo-list" class="photo-list"></div>
+                    </div>
+                  </details>
+                  <details class="detail-card">
+                    <summary>
+                      <span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#waveform"></use></svg></span
+                      ><span
+                        ><b>Que también escuche tu voz</b
+                        ><small
+                          >Un «te quiero» suena distinto cuando es tuyo.</small
+                        ></span
+                      ><span class="detail-plus"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#plus"></use></svg></span>
+                    </summary>
+                    <div class="detail-body">
+                      <div class="voice-studio">
+                        <span class="voice-wave" aria-hidden="true"
+                          ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#waveform"></use></svg></span
+                        >
+                        <p>Un mensaje de hasta 30 segundos.</p>
+                        <div class="voice-controls">
+                          <button
+                            type="button"
+                            id="voice-record"
+                            class="btn btn-soft"
+                          >
+                            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#microphone"></use></svg> Grabar mi voz</button
+                          ><button
+                            type="button"
+                            id="voice-remove"
+                            class="text-button hidden"
+                          >
+                            Quitar audio
+                          </button>
+                          <div id="voice-preview" class="hidden"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                  <label class="reply-choice"
+                    ><span class="detail-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></span
+                    ><span
+                      ><b>Dejar la puerta abierta</b
+                      ><small
+                        >Podrá responder con un dibujito y unas palabras en este
+                        mismo regalo.</small
+                      ></span
+                    ><input type="checkbox" id="f-reply" role="switch" checked /><span
+                      class="reply-switch"
+                      aria-hidden="true"
+                    ></span
+                  ></label>
+                  <p id="media-status" class="media-status" role="status"></p>
+                </div>
+              </div>
+            </section>
+            <aside
+              id="assistant-panel"
+              class="assistant-panel hidden"
+              aria-label="Tu cómplice"
+            >
+              <div class="assistant-title">
+                <span class="complice-mark"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></span>
+                <div>
+                  <b>Tu cómplice</b
+                  ><small>Un empujoncito para decirlo a tu manera.</small>
+                </div>
+                <button
+                  type="button"
+                  id="assistant-close"
+                  class="text-button"
+                  aria-label="Cerrar asistente"
+                >
+                  <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+                </button>
+              </div>
+              <p class="assistant-disclosure">
+                Lo que escribas aquí se enviará al asistente. La conversación no
+                se comparte con el regalo.
+              </p>
+              <div
+                id="assistant-history"
+                class="assistant-history"
+                aria-live="polite"
+              ></div>
+              <div
+                id="assistant-loading"
+                class="assistant-loading hidden"
+                role="status"
+                aria-live="polite"
+              >
+                <div class="thinking-heading">
+                  <span class="thinking-flower" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></span>
+                  <div>
+                    <b id="assistant-loading-label"
+                      >Buscando las palabras para ti…</b
+                    ><small>Tres maneras de decir algo bonito.</small>
+                  </div>
+                  <span class="thinking-dots" aria-hidden="true"
+                    ><i></i><i></i><i></i
+                  ></span>
+                </div>
+                <div class="thinking-cards" aria-hidden="true">
+                  <div><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></span><i></i><i></i><i></i></div>
+                  <div><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span><i></i><i></i><i></i></div>
+                  <div><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></span><i></i><i></i><i></i></div>
+                </div>
+              </div>
+              <div id="assistant-proposal" class="assistant-proposal hidden">
+                <p id="assistant-proposal-text"></p>
+                <div id="assistant-options" class="assistant-options"></div>
+                <div
+                  id="assistant-selection"
+                  class="assistant-selection hidden"
+                >
+                  <div class="selection-heading">
+                    <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></span>
+                    <div>
+                      <small>SELECCIONASTE ESTA OPCIÓN</small>
+                      <h4 id="assistant-selection-title"></h4>
+                    </div>
+                    <button
+                      type="button"
+                      id="assistant-change"
+                      class="text-button"
+                    >
+                      Ver otras ideas
+                    </button>
+                  </div>
+                  <p>
+                    Dale tu toque aquí. También puedes contarme qué cambiar y la
+                    afinamos juntos.
+                  </p>
+                  <label class="field"
+                    ><span>Así quieres decirlo</span
+                    ><textarea
+                      id="assistant-edit"
+                      maxlength="360"
+                      rows="5"
+                      aria-describedby="assistant-edit-count"
+                    ></textarea
+                    ><em class="count" id="assistant-edit-count"
+                      >0/360</em
+                    ></label
+                  >
+                  <div class="selection-actions">
+                    <button
+                      type="button"
+                      id="assistant-refine"
+                      class="btn btn-soft"
+                    >
+                      Afinar esta idea contigo <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sparkles"></use></svg></button
+                    ><button
+                      type="button"
+                      id="assistant-reset-edit"
+                      class="text-button"
+                    >
+                      Recuperar texto original
+                    </button>
+                  </div>
+                </div>
+                <div class="proposal-actions">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="assistant-apply"
+                    disabled
+                  >
+                    Usar en mi carta <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></button
+                  ><button
+                    type="button"
+                    class="text-button"
+                    id="assistant-discard"
+                  >
+                    Descartar
+                  </button>
+                </div>
+              </div>
+              <label class="field"
+                ><span>¿Qué te gustaría preparar?</span
+                ><textarea
+                  id="assistant-input"
+                  maxlength="1200"
+                  rows="2"
+                  placeholder="Para Ana. Algo sencillo, alegre y poco cursi…"
+                ></textarea>
+              </label>
+              <div id="assistant-followups" class="assistant-followups"></div>
+              <div class="assistant-actions">
+                <button
+                  type="button"
+                  id="assistant-send"
+                  class="btn btn-primary"
+                >
+                  Crear opciones para mí <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></button
+                ><button
+                  type="button"
+                  id="assistant-cancel"
+                  class="text-button hidden"
+                >
+                  Cancelar</button
+                ><button
+                  type="button"
+                  id="assistant-undo"
+                  class="text-button hidden"
+                >
+                  Deshacer propuesta
+                </button>
+              </div>
+              <p id="assistant-status" role="status"></p>
+            </aside>
+          </div>
+          <aside class="creator-preview">
+            <p class="eyebrow">UN ADELANTO DE SU SONRISA</p>
+            <div
+              id="bouquet-preview"
+              class="bouquet-preview"
+              aria-label="Vista previa del ramo"
+            ></div>
+            <p class="preview-name" id="preview-name">Para alguien especial</p>
+            <p class="preview-message" id="preview-message">
+              Unas flores. Mil cosas que decir.
+            </p>
+            <div
+              id="letter-drawings-preview"
+              class="letter-drawings-preview"
+            ></div>
+            <span class="preview-caption"
+              >Un ramo y unas palabras, sólo para esa persona.</span
+            >
+          </aside>
+        </div>
+        <div class="modal-actions creator-footer">
+          <span class="draft-note" id="draft-note"
+            >Tu regalo se guarda mientras lo preparas</span
+          ><button type="button" class="text-button" id="gift-cancel">
+            Volver</button
+          ><button type="button" class="btn btn-primary" id="step-next">
+            Continuar <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></button
+          ><button
+            type="submit"
+            class="btn btn-primary hidden"
+            id="gift-submit"
+          >
+            Ver mi regalo <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <section id="reveal" class="screen hidden" aria-labelledby="reveal-title">
+      <div class="reveal-inner">
+        <p class="eyebrow">ALGUIEN PENSÓ EN TI</p>
+        <h1 class="reveal-title" id="reveal-title">
+          Hay algo bonito<br />esperándote.
+        </h1>
+        <p class="lede" id="reveal-sub">
+          Un pequeño jardín y unas palabras del corazón.
+        </p>
+        <button id="btn-open" class="envelope" aria-label="Abrir mi regalo">
+          <span class="envelope-paper"
+            ><span>Para</span><b id="envelope-to">ti</b
+            ><small>con mucho cariño</small></span
+          ><span class="envelope-pocket"></span
+          ><span class="envelope-flap"></span
+          ><span class="wax-seal" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span>
+        </button>
+        <p class="envelope-hint">Toca el sello para abrir tu regalo</p>
+        <label class="music-choice"
+          ><input type="checkbox" id="reveal-music" checked /> Abrir con
+          música</label
+        >
+      </div>
+    </section>
+
+    <section id="card-layer" class="hidden" aria-labelledby="card-heading">
+      <article class="card">
+        <div class="card-top">
+          <span class="card-flower" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span>
+          <p class="card-date" id="c-occasion">Porque te quiero</p>
+          <button
+            class="modal-close"
+            id="btn-card-close"
+            aria-label="Plegar carta"
+          >
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#minus"></use></svg>
+          </button>
+        </div>
+        <h2 class="card-to" id="card-heading">Para <b id="c-to">ti</b>,</h2>
+        <p class="card-msg" id="c-msg"></p>
+        <button class="text-button skip-writing" id="btn-skip">
+          Leer la carta completa
+        </button>
+        <p class="card-from">
+          Con todo mi cariño,<br /><span id="c-from"
+            >alguien que te quiere</span
+          >
+        </p>
+        <div
+          class="memory-list hidden"
+          id="memory-list"
+          aria-label="Pequeñas razones"
+        ></div>
+        <section
+          id="letter-extras"
+          class="letter-extras"
+          aria-label="Detalles y respuestas de esta carta"
+        >
+          <div id="island-gallery" class="island-gallery"></div>
+          <div id="gift-media" class="gift-media"></div>
+          <section
+            id="reply-thread"
+            class="reply-thread hidden"
+            aria-labelledby="reply-thread-title"
+          >
+            <div class="reply-thread-heading">
+              <h3 id="reply-thread-title">Lo que floreció de esta carta</h3>
+              <button
+                type="button"
+                id="reply-refresh"
+                class="text-button"
+                aria-label="Actualizar respuestas"
+              >
+                <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#rotate"></use></svg>
+              </button>
+            </div>
+            <p id="reply-context" class="reply-context"></p>
+            <div id="reply-list" class="reply-list" aria-live="polite"></div>
+            <p id="reply-read-status" class="inline-status" role="status"></p>
+            <button type="button" id="reply-copy" class="btn btn-soft hidden">
+              Copiar enlace para enviárselo <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg>
+            </button>
+            <button type="button" id="reply-open" class="btn btn-soft hidden">
+              Dejarle unas palabras <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+            </button>
+            <div id="reply-editor" class="reply-editor hidden">
+              <div class="reply-editor-heading">
+                <h4>Ahora, un poquito de ti.</h4>
+                <button
+                  type="button"
+                  id="reply-cancel"
+                  class="text-button"
+                  aria-label="Cerrar mi respuesta"
+                >
+                  <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+                </button>
+              </div>
+              <label class="field"
+                ><span>¿Cómo quieres firmar?</span
+                ><input
+                  id="reply-name"
+                  maxlength="28"
+                  autocomplete="nickname"
+                  placeholder="Tu nombre o apodo"
+                  aria-describedby="reply-privacy"
+              /></label>
+              <label class="field"
+                ><span>Lo que te hizo sentir</span
+                ><textarea
+                  id="reply-note"
+                  maxlength="80"
+                  rows="3"
+                  placeholder="Me sacaste una sonrisa. Gracias por pensar en mí…"
+                ></textarea
+                ><em class="count" id="reply-count">0/80</em></label
+              >
+              <div class="reply-starters">
+                <button
+                  type="button"
+                  data-reply-start="Me hiciste sonreír. Gracias por este detalle tan bonito."
+                >
+                  Me hiciste sonreír</button
+                ><button
+                  type="button"
+                  data-reply-start="Te mando un abrazo enorme. Yo también pienso en ti."
+                >
+                  Un abrazo de vuelta
+                </button>
+              </div>
+              <details class="reply-drawing-tools">
+                <summary>Acompañarlo con un dibujito <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span></summary>
+                <p>Elige un color para la flor o haz tu propio dibujo.</p>
+                <div id="reply-colors" class="reply-colors"></div>
+                <canvas
+                  id="reply-canvas"
+                  width="600"
+                  height="600"
+                  aria-label="Dibuja una respuesta para esta carta"
+                ></canvas>
+                <div class="reply-sketch-actions">
+                  <button
+                    type="button"
+                    id="reply-draw-clear"
+                    class="text-button"
+                  >
+                    Dibujar desde cero</button
+                  ><button
+                    type="button"
+                    id="reply-draw-undo"
+                    class="text-button"
+                  >
+                    Deshacer</button
+                  ><button
+                    type="button"
+                    id="reply-draw-guide"
+                    class="text-button"
+                  >
+                    Usar flor guía
+                  </button>
+                </div>
+              </details>
+              <p id="reply-privacy" class="reply-privacy">
+                Sin crear una cuenta. Recordamos tu apodo en este navegador. Tu
+                respuesta y firma se guardan en el regalo y las verá quien tenga
+                el enlace.
+              </p>
+              <button type="button" id="reply-save" class="btn btn-primary">
+                Dejar mi respuesta <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+              </button>
+              <p id="reply-status" class="inline-status" role="status"></p>
+            </div>
+          </section>
+          <div id="gift-management" class="gift-management hidden">
+            <button type="button" id="gift-delete" class="text-button">
+              Eliminar este regalo
+            </button>
+            <div
+              id="gift-delete-confirm"
+              class="delete-confirm hidden"
+              role="group"
+              aria-labelledby="delete-title"
+            >
+              <h4 id="delete-title">¿Eliminar este regalo?</h4>
+              <p>
+                El enlace dejará de abrirse. También se borrarán sus respuestas
+                y los archivos que no use otro regalo. Esta acción no se puede
+                deshacer.
+              </p>
+              <div>
+                <button
+                  type="button"
+                  id="gift-delete-cancel"
+                  class="btn btn-soft"
+                >
+                  Conservarlo</button
+                ><button
+                  type="button"
+                  id="gift-delete-yes"
+                  class="btn btn-danger"
+                >
+                  Sí, eliminar
+                </button>
+              </div>
+            </div>
+            <p id="management-status" class="inline-status" role="status"></p>
+          </div>
+        </section>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="btn-share">
+            Compartir regalo <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></span></button
+          ><button class="btn btn-soft" id="btn-download">
+            Guardar postal <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-down"></use></svg></span></button
+          ><button class="text-button" id="btn-copy">Copiar enlace</button
+          ><button class="text-button" id="btn-edit">Editar mi carta</button>
+        </div>
+        <p class="card-footnote">
+          Las flores duran un momento. Lo que sentimos, un poquito más.
+        </p>
+      </article>
+    </section>
+    <footer class="gift-dock hidden" id="gift-dock">
+      <button class="btn btn-soft" id="btn-island">Ver respuestas <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg></button>
+      <button class="btn btn-soft" id="btn-letter">Leer mi carta</button
+      ><button class="text-button" id="btn-replay">Repetir la sorpresa</button
+      ><button class="text-button" id="btn-back">Volver al jardín</button>
+    </footer>
+    <div id="preparing" class="preparing hidden" role="status">
+      <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span> reuniendo un poquito de amor…
+    </div>
+    <div id="memory-popover" class="memory-popover hidden" role="dialog" aria-labelledby="memory-heading" aria-describedby="memory-text">
+      <button type="button" class="modal-close" id="memory-dismiss" aria-label="Cerrar razón de la flor"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg></button>
+      <span id="memory-heading">UNA FLOR, UNA RAZÓN</span>
+      <p id="memory-text"></p>
+      <button class="text-button" id="memory-close">
+        Guardar en el corazón <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#heart"></use></svg>
+      </button>
+      <small class="memory-timeout">Se cierra en 8 segundos</small>
+    </div>
+
+    <div
+      id="help-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="help-title"
+    >
+      <div class="modal-card modal-card-sm">
+        <button class="modal-close" id="help-close" aria-label="Cerrar">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+        </button>
+        <p class="eyebrow">ASÍ FLORECE UN REGALO</p>
+        <h2 class="modal-title" id="help-title">
+          Tres pasos.<br /><em>Mucho cariño.</em>
+        </h2>
+        <ol class="steps">
+          <li>
+            <b>Siembra un poquito de alegría.</b>
+            <p>
+              Toca el pasto para hacer crecer flores. Arrastra para mirar y
+              pellizca para acercarte.
+            </p>
+          </li>
+          <li>
+            <b>Dale tu toque.</b>
+            <p>
+              Elige una cinta, escribe tu carta y guarda pequeñas razones en las
+              flores.
+            </p>
+          </li>
+          <li>
+            <b>Hazle llegar tu jardín.</b>
+            <p>
+              Comparte el enlace. Su nombre, su ramo y tus palabras la estarán
+              esperando.
+            </p>
+          </li>
+        </ol>
+        <button class="btn btn-primary" id="help-ok">Vamos al jardín</button>
+      </div>
+    </div>
+    <div
+      id="reset-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reset-title"
+    >
+      <div class="modal-card modal-card-sm">
+        <h2 class="modal-title" id="reset-title">¿Sembramos de nuevo?</h2>
+        <p>Tu carta seguirá guardada. Solo empezaremos un nuevo jardín.</p>
+        <div class="modal-actions">
+          <button class="text-button" id="reset-cancel">Conservar jardín</button
+          ><button class="btn btn-primary" id="reset-confirm">
+            Volver a sembrar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      id="link-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="link-title"
+    >
+      <div class="modal-card modal-card-sm">
+        <button class="modal-close" id="link-close" aria-label="Cerrar">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#close"></use></svg>
+        </button>
+        <span class="share-flower" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#flower"></use></svg></span>
+        <h2 class="modal-title" id="link-title">Hazle llegar su jardín</h2>
+        <p>Un mensaje pequeño para una sorpresa bonita.</p>
+        <label class="field share-note"><span>Tu mensaje · puedes cambiarlo</span>
+          <textarea id="share-message" rows="4" maxlength="500"></textarea>
+        </label>
+        <label class="field"
+          ><span>Enlace del regalo</span
+          ><input id="gift-link" readonly type="text"
+        /></label>
+        <p id="share-status" class="share-status" role="status"></p>
+        <div class="share-options">
+          <a class="btn btn-primary" id="share-whatsapp" target="_blank" rel="noopener noreferrer">Abrir WhatsApp <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></a>
+          <button type="button" class="btn btn-secondary" id="share-copy">Copiar enlace</button>
+          <button type="button" class="text-button" id="share-native">Más opciones para compartir <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#arrow-up-right"></use></svg></button>
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="yt" aria-hidden="true"></div>
+    <script type="module" src="/js/main.js?v=20260915-entry-flow"></script>
+  </body>
+</html>
