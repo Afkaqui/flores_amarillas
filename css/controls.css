@@ -776,8 +776,11 @@ summary:focus-visible {
 .photo-missing-notice {
   margin: 0;
   padding: 1.5rem 2.75rem 1.5rem 1rem;
-  color: var(--texto);
+  color: var(--tinta);
   background: #f2eee5;
   font-size: .875rem;
   line-height: 1.5;
+}
+#photo-list .photo-edit-card img[hidden] {
+  display: none;
 }
