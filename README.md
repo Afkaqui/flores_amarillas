@@ -89,6 +89,13 @@ node --test tests/*.test.mjs
 
 Las pruebas de PostgreSQL y API se omiten sin `FLORES_TEST_DB=1`. Para ejecutarlas, configura una base de pruebas independiente.
 
+Las pruebas con el modelo real son opcionales y consumen llamadas al proveedor:
+`FLORES_TEST_AI=1 node --env-file=.env --test tests/assistant-live.test.mjs`.
+Comprueban consultas ajenas al regalo, peticiones mezcladas o disfrazadas de cartas,
+cambios de tema y dedicatorias legítimas con detalles personales. El alcance permitido
+es preparar las palabras y opciones del regalo; cualquier otra función queda fuera,
+aunque sea una pregunta inocente o aparezca después de una conversación afectiva.
+
 | Carpeta | Contenido |
 | --- | --- |
 | `js/` | Jardín, creador, carta y controles |
