@@ -3,7 +3,7 @@ body[data-mode="ramo"] #card-layer {
   bottom: max(85px, var(--gift-dock-clearance, 105px));
 }
 body[data-ambiente="noche"] #loader {
-  background: linear-gradient(170deg, #192641, #302c43);
+  background: linear-gradient(170deg, #111f26, #1b3531);
 }
 body[data-ambiente="noche"] .loader-text { color: #dfd3b7; }
 .ui-icon {

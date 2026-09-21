@@ -25,7 +25,7 @@ Crea un regalo virtual con flores amarillas, tus recuerdos y tu voz. Sin registr
 
 ## Lo que guarda este jardín
 
-- **Un mundo en 3D.** Flores que crecen, abejas, mariposas y dos ambientes: tarde de sol o noche con luciérnagas.
+- **Un mundo en 3D.** Flores que crecen, abejas, mariposas en un jardín nocturno con luciérnagas.
 - **Una carta que se siente tuya.** Papel, cinta, firma y pequeñas razones escondidas en las flores.
 - **Fotos, dibujos y voz.** Hasta tres fotos, dibujos propios y una nota de voz de hasta 30 segundos.
 - **Ayuda para encontrar las palabras.** Un asistente propone opciones que puedes editar antes de aplicarlas.
