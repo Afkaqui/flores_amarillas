@@ -63,19 +63,14 @@ const writeStorage = (key, data) => {
   }
 };
 const received = leerRegalo();
-const savedAmbient = readStorage(AMBIENT_PREFERENCE);
-const initialAmbient = ["noche", "atardecer"].includes(savedAmbient)
-  ? savedAmbient
-  : matchMedia("(pointer: coarse), (max-width: 767px)").matches
-    ? "noche"
-    : "atardecer";
+const initialAmbient = "noche";
 let current = normalizeGift({
   permitirRespuesta: true,
   semilla: Math.random(),
   ...readStorage(DRAFT),
   ambiente: initialAmbient,
 });
-document.body.dataset.ambiente = received?.ambiente || initialAmbient;
+document.body.dataset.ambiente = "noche";
 let role = received ? "invitado" : "autor",
   mode = "intro",
   busy = false,
@@ -118,6 +113,11 @@ const setMode = (value) => {
   document.body.dataset.mode = value;
 };
 const setVisible = (id, visible) => $(id).classList.toggle("hidden", !visible);
+function setAmbient() {
+  garden.aplicarEstilo({ ambiente: "noche" });
+  document.body.dataset.ambiente = "noche";
+}
+/* Selector de ambiente desactivado mientras la experiencia es solo nocturna.
 function setAmbient(value) {
   const night = value === "noche";
   garden.aplicarEstilo({ ambiente: night ? "noche" : "atardecer" });
@@ -139,6 +139,7 @@ $("#btn-ambient").addEventListener("click", () => {
     saveDraft();
   }
 });
+*/
 function updateView() {
   const fixed = garden.vistaFijada;
   $("#btn-view").setAttribute("aria-pressed", String(fixed));

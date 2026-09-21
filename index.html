@@ -55,7 +55,7 @@
       body {
         margin: 0;
         height: 100%;
-        background: #bfe3f5;
+        background: #111f26;
         overflow: hidden;
       }
       .hidden {
@@ -67,11 +67,11 @@
         inset: 0;
       }
       #loader {
-        background: linear-gradient(170deg, #fff3cf, #f7d77a);
+        background: #111f26;
         z-index: 60;
       }
     </style>
-    <link rel="stylesheet" href="/css/styles.css?v=20260920-soft-daylight" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260921-night-only" />
     <link rel="stylesheet" href="/css/controls.css?v=20260920-personal-type" />
     <script type="importmap">
       {
@@ -83,7 +83,10 @@
           "/js/media-player.js": "/js/media-player.js?v=20260920-backend-review",
           "/js/icons.js": "/js/icons.js?v=20260915-svg-icons",
           "/js/audio.js": "/js/audio.js?v=20260920-frame-ready",
-          "/js/garden.js": "/js/garden.js?v=20260915-bees",
+          "/js/garden.js": "/js/garden.js?v=20260921-night-only",
+          "/js/flower.js": "/js/flower.js?v=20260921-night-only",
+          "/shared/gift.js": "/shared/gift.js?v=20260921-night-only",
+          "/shared/bouquet.js": "/shared/bouquet.js?v=20260921-night-only",
           "/js/bichos.js": "/js/bichos.js?v=20260915-bees",
           "/js/render-quality.js": "/js/render-quality.js?v=20260915-mobile-sharp",
           "/js/share.js": "/js/share.js?v=20260914-memory-close",
@@ -94,7 +97,7 @@
       }
     </script>
   </head>
-  <body data-ambiente="atardecer" data-mode="intro">
+  <body data-ambiente="noche" data-mode="intro">
     <canvas
       id="scene"
       aria-label="Jardín de flores amarillas. Puedes arrastrar para mirar alrededor."
@@ -121,6 +124,7 @@
         ></a
       >
       <div class="hud-derecha">
+        <!-- Selector de ambiente desactivado.
         <button
           class="ambient-toggle"
           id="btn-ambient"
@@ -129,6 +133,7 @@
           <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/shared/icons.svg?v=20260915#sun"></use></svg></span>
           <span id="ambient-label">Tarde de sol</span>
         </button>
+        -->
         <button
           class="btn-hud"
           id="btn-sound"
@@ -369,13 +374,8 @@
                     min="3"
                     max="24"
                     value="12" /></label
-                ><label class="field"
-                  ><span>Su cielo</span
-                  ><select id="f-ambient">
-                    <option value="atardecer">Día luminoso</option>
-                    <option value="noche">Noche de luciérnagas</option>
-                  </select></label
                 >
+                <input type="hidden" id="f-ambient" value="noche" />
               </div>
             </section>
             <section
@@ -1159,6 +1159,6 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="yt" aria-hidden="true"></div>
-    <script type="module" src="/js/main.js?v=20260920-gentle-writing"></script>
+    <script type="module" src="/js/main.js?v=20260921-night-only"></script>
   </body>
 </html>

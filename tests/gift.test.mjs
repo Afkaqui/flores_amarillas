@@ -15,7 +15,8 @@ test("old gifts receive compatible defaults and retain Unicode", () => {
   assert.equal(gift.mensaje, "Flores\npara ti");
   assert.equal(gift.flores, 18);
   assert.equal(gift.cinta, "rosa");
-  assert.equal(gift.ambiente, "atardecer");
+  assert.equal(gift.ambiente, "noche");
+  assert.equal(normalizeGift({ ambiente: "atardecer" }).ambiente, "noche");
 });
 test("untrusted customizations are bounded before reaching markup and geometry", () => {
   const gift = normalizeGift({

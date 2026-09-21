@@ -1,9 +1,9 @@
 :root {
-  --crema: #fffdf7;
-  --tinta: #284838;
+  --crema: #faf6eb;
+  --tinta: #2d4b40;
   --muted: #817057;
   --oro: #d79a37;
-  --rosa: #b76e79;
+  --rosa: #b37982;
   --line: rgba(103, 74, 36, 0.16);
   --fuente-titulo: "Nunito Sans", system-ui, sans-serif;
   --fuente-texto: "Nunito Sans", system-ui, sans-serif;
@@ -19,7 +19,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #abd9f3;
+  background: #111f26;
   color: var(--tinta);
   font-family: var(--fuente-texto);
   -webkit-font-smoothing: antialiased;
@@ -76,10 +76,10 @@ button {
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    #b8d5c7d9 0%,
-    #bcd8cccc 22%,
-    #bfd8cf70 42%,
-    #bfd8cf00 65%
+    #b8cfc3ed 0%,
+    #b8cfc3d9 22%,
+    #abc6b56b 42%,
+    #abc6b500 65%
   );
   z-index: 2;
   transition: opacity 0.7s;
@@ -1188,7 +1188,8 @@ body:has(#reveal:not(.hidden)) .brand small {
   opacity: 0.8;
 }
 #loader {
-  background: #faf0df;
+  background: #111f26;
+  color: #eee8d5;
   z-index: 90;
   align-content: center;
   justify-items: center;
@@ -1203,7 +1204,7 @@ body:has(#reveal:not(.hidden)) .brand small {
 .loader-text {
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: #a08a68;
+  color: #c2cebe;
 }
 #load-error {
   font-size: 12px;
@@ -1221,44 +1222,70 @@ body:has(#reveal:not(.hidden)) .brand small {
   }
 }
 body[data-ambiente="noche"] {
-  --tinta: #4d3e47;
+  --tinta: #2d4b40;
 }
 body[data-ambiente="noche"] .vignette {
   background: linear-gradient(
     90deg,
-    #252335f5,
-    #302a40db 25%,
-    #302a4055 60%,
+    #111f26f5,
+    #14282bdb 25%,
+    #19352f55 60%,
     transparent
   );
 }
 body[data-ambiente="noche"][data-mode="intro"] .title {
-  color: #f8e8ce;
+  color: #f5eedb;
 }
 body[data-ambiente="noche"][data-mode="intro"] .title em {
-  color: #e1bd7a;
+  color: #e9cc7c;
 }
 body[data-ambiente="noche"][data-mode="intro"] .lede,
 body[data-ambiente="noche"][data-mode="intro"] .eyebrow,
 body[data-ambiente="noche"][data-mode="intro"] .hint-small,
 body[data-ambiente="noche"][data-mode="intro"] .intro-footer,
 body[data-ambiente="noche"] .hero-note {
-  color: #d7c5ae;
+  color: #c2cebe;
 }
 body[data-ambiente="noche"] .brand {
-  color: #f4e4cc;
+  color: #eee8d5;
 }
 body[data-ambiente="noche"] .brand small {
-  color: #d4bea1;
+  color: #b9c7b8;
+}
+body[data-ambiente="noche"] :is(.btn-hud, .ambient-toggle) {
+  color: #eee8d5;
+  background: #1e3435d9;
+  border-color: #b8c9b92e;
+}
+body[data-ambiente="noche"] .btn-hud:hover,
+body[data-ambiente="noche"] .btn-hud[aria-pressed="true"] {
+  background: #36504b;
+}
+body[data-mode="intro"] .intro-actions .btn-primary {
+  border-radius: 999px;
+  padding: 17px 25px;
+  font-weight: 650;
+}
+body[data-ambiente="noche"][data-mode="intro"] .intro-actions .btn-primary {
+  color: #293e35;
+  background: #e9cc7c;
+  box-shadow: 0 8px 28px #07131024;
+}
+body[data-ambiente="noche"][data-mode="intro"] .intro-actions .btn-primary:hover {
+  background: #f1d991;
 }
 body[data-ambiente="noche"][data-mode="intro"] .intro-actions .text-button {
-  color: #e6d2b6;
+  color: #d5ddce;
+}
+body[data-ambiente="noche"] #my-gift-open {
+  color: #e8d495;
+  border-color: #e8d49555;
 }
 body[data-ambiente="noche"] #reveal {
-  background: linear-gradient(180deg, #171e3033, #171e308c 48%, #171e304d);
+  background: linear-gradient(180deg, #111f2633, #111f268c 48%, #111f264d);
 }
 body[data-ambiente="noche"] .reveal-title {
-  color: #f8e8ce;
+  color: #f5eedb;
 }
 body[data-ambiente="noche"] .reveal-inner .lede,
 body[data-ambiente="noche"] .reveal-inner .eyebrow,
@@ -1405,6 +1432,13 @@ body[data-ambiente="noche"] .music-choice {
   }
   .intro-actions {
     gap: 17px;
+    flex-wrap: wrap;
+  }
+  body[data-mode="intro"] .intro-actions .btn-primary {
+    padding: 14px 18px;
+    gap: 12px;
+    font-size: 13px;
+    white-space: nowrap;
   }
   .btn {
     font-size: 11px;
@@ -1446,18 +1480,18 @@ body[data-ambiente="noche"] .music-choice {
   .vignette {
     background: linear-gradient(
       180deg,
-      #bad6c9eb 0%,
-      #bed8cfd4 32%,
-      #bfd8cf66 57%,
-      #bfd8cf00 80%
+      #b8cfc3f0 0%,
+      #b8cfc3db 32%,
+      #abc6b566 57%,
+      #abc6b500 80%
     );
   }
   body[data-ambiente="noche"] .vignette {
     background: linear-gradient(
       180deg,
-      #272436f5,
-      #302a40e0 35%,
-      #302a4055 60%,
+      #111f26f5,
+      #14282be0 35%,
+      #19352f55 60%,
       transparent 80%
     );
   }

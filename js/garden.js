@@ -43,7 +43,7 @@ export class Garden {
     this.estilo ||= {
       cinta: "rosa",
       papel: "marfil",
-      ambiente: "atardecer",
+      ambiente: "noche",
       semilla: 0.421,
     };
 
@@ -197,7 +197,7 @@ export class Garden {
     geo.computeVertexNormals();
 
     const mat = new THREE.MeshStandardMaterial({
-      color: 0x679642,
+      color: 0x537553,
       roughness: 1,
       metalness: 0,
     });
@@ -263,9 +263,9 @@ export class Garden {
       dummy.updateMatrix();
       inst.setMatrixAt(i, dummy.matrix);
       col.setHSL(
-        0.245 + rnd() * 0.065,
-        0.46 + rnd() * 0.2,
-        0.22 + rnd() * 0.15,
+        0.28 + rnd() * 0.055,
+        0.22 + rnd() * 0.16,
+        0.21 + rnd() * 0.12,
       );
       inst.setColorAt(i, col);
       rands[i] = rnd();
@@ -290,7 +290,7 @@ export class Garden {
       const r = 62 + rnd() * 22;
       const s = 16 + rnd() * 16;
       const m = new THREE.Mesh(
-        follaje(s, 2, rnd, 0x6ea34d, 0x3e6b34, 0.1),
+        follaje(s, 2, rnd, 0x6a8964, 0x365c45, 0.1),
         matColina,
       );
       m.position.set(Math.cos(a) * r, -s * 0.55 + rnd() * 2, Math.sin(a) * r);
@@ -348,7 +348,7 @@ export class Garden {
           Math.sin(ang) * rad,
         );
         const b = new THREE.Mesh(
-          follaje(s, 1, rnd, 0x74b84a, 0x2c5c2b, 0.18),
+          follaje(s, 1, rnd, 0x78976a, 0x355e45, 0.18),
           matArb,
         );
         b.position.copy(p);
@@ -383,8 +383,8 @@ export class Garden {
           mTmp.compose(posHoja, qTmp, escHoja);
           matrices.push(g.matrixWorld.clone().multiply(mTmp));
           colHoja.setHSL(
-            0.255 + rnd() * 0.06,
-            0.45 + rnd() * 0.25,
+            0.28 + rnd() * 0.055,
+            0.22 + rnd() * 0.18,
             0.24 + dir.y * 0.1 + rnd() * 0.12,
           );
           coloresHoja.push(colHoja.clone());
@@ -580,7 +580,7 @@ export class Garden {
       const distance = 6 + (cluster % 3) * 2.7;
       const x = Math.cos(angle) * distance + (rnd() - 0.5) * 3.3;
       const z = -Math.abs(Math.sin(angle) * distance) + (rnd() - 0.5) * 2.4 - 4;
-      const flower = new Flower(rnd());
+      const flower = new Flower(rnd(), { detailed: false });
       flower.position.set(x, alturaTerreno(x, z), z);
       flower.userData.decorativa = true;
       flower.userData.origen = {
@@ -737,7 +737,7 @@ export class Garden {
     const target = mobile
       ? new THREE.Vector3(0, portada ? 2.65 : 0.15, 0)
       : new THREE.Vector3(portada ? -1.65 : 1.05, 1.4, 0);
-    const distance = mobile ? (portada ? 6.4 : 6.2) : 5.9;
+    const distance = mobile ? (portada ? 6.4 : 6.2) : portada ? 5.45 : 5.9;
     return this.volar(
       new THREE.Vector3(target.x, target.y + 1.25, distance),
       target,
@@ -1071,22 +1071,26 @@ export class Garden {
   }
 
   aplicarEstilo(style) {
-    this.estilo = { ...this.estilo, ...style };
+    this.estilo = { ...this.estilo, ...style, ambiente: "noche" };
     const night = this.estilo.ambiente === "noche";
-    this.cieloMat.uniforms.uArriba.value.set(night ? 0x111d3b : 0x429be0);
-    this.cieloMat.uniforms.uMedio.value.set(night ? 0x35466d : 0x86cef4);
-    this.cieloMat.uniforms.uAbajo.value.set(night ? 0x706d93 : 0xd8eff4);
-    this.scene.fog.color.set(night ? 0x354159 : 0xb8dce9);
-    this.hemi.color.set(night ? 0xb9b8e0 : 0xd4edff);
-    this.hemi.groundColor.set(night ? 0x525367 : 0x688b43);
-    this.hemi.intensity = night ? 0.75 : 1.0;
-    this.sol.color.set(night ? 0xb6c3ec : 0xfff1d1);
-    this.sol.intensity = night ? 1.3 : 1.9;
+    this.cieloMat.uniforms.uArriba.value.set(night ? 0x0e1b24 : 0x5796b8);
+    this.cieloMat.uniforms.uMedio.value.set(night ? 0x182e37 : 0x94bfce);
+    this.cieloMat.uniforms.uAbajo.value.set(night ? 0x294a48 : 0xc1d5ce);
+    this.scene.fog.color.set(night ? 0x203c38 : 0xaac7bd);
+    this.hemi.color.set(night ? 0xd6e5f6 : 0xe4eff2);
+    this.hemi.groundColor.set(night ? 0x344232 : 0x526a45);
+    this.hemi.intensity = night ? 1.6 : 1.8;
+    this.sol.color.set(night ? 0xffe1a1 : 0xffeac2);
+    this.sol.intensity = night ? 2.8 : 3.0;
     this.sol.position.set(-6, 9, 6);
-    this.relleno.intensity = night ? 0.5 : 0.35;
-    this.sunSprite.material.color.set(night ? 0xc0c5f3 : 0xffd9a1);
-    this.sunSprite.scale.setScalar(night ? 12 : 22);
-    this.renderer.toneMappingExposure = night ? 0.9 : 1.0;
+    this.relleno.color.set(night ? 0x91bdc5 : 0xc4dcd5);
+    this.relleno.intensity = night ? 1.4 : 0.8;
+    this.suelo.material.color.set(night ? 0x203c30 : 0x537553);
+    this.pasto.material.color.set(night ? 0xa7ba9e : 0xd9e3d2);
+    this.sunSprite.material.color.set(night ? 0xe8e4c9 : 0xffe4b4);
+    this.sunSprite.scale.setScalar(night ? 9 : 17);
+    this.nubes.forEach(cloud => { cloud.visible = !night; });
+    this.renderer.toneMappingExposure = night ? 1.08 : 1.06;
   }
 
   eliminarRamo() {

@@ -50,7 +50,7 @@ export function normalizeGift(value = {}) {
     ),
     cinta: option(data.cinta, RIBBONS, "rosa"),
     papel: option(data.papel, PAPERS, "marfil"),
-    ambiente: data.ambiente === "noche" ? "noche" : "atardecer",
+    ambiente: "noche",
     ocasion: option(data.ocasion, OCCASIONS, "primavera"),
     recuerdos: (Array.isArray(data.recuerdos) ? data.recuerdos : [])
       .slice(0, 3)

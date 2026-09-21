@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 
 const TWO_PI = Math.PI * 2;
@@ -18,12 +19,19 @@ function buildPetalGeometry() {
 
   const g = new THREE.ShapeGeometry(s, 16);
   const pos = g.attributes.position;
+  const colors = [];
+  const base = new THREE.Color("#c59740");
+  const tip = new THREE.Color("#fff5c9");
+  const tint = new THREE.Color();
   // Copa: el pétalo se curva hacia arriba en la punta y a los lados.
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const y = pos.getY(i);
     pos.setZ(i, 0.2 * y * y * y + 0.45 * x * x);
+    tint.copy(base).lerp(tip, smoothstep(0, 0.85, y));
+    colors.push(tint.r, tint.g, tint.b);
   }
+  g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   pos.needsUpdate = true;
   g.computeVertexNormals();
   return g;
@@ -50,38 +58,52 @@ const PETAL_GEO = buildPetalGeometry();
 const LEAF_GEO = buildLeafGeometry();
 const CORE_GEO = new THREE.SphereGeometry(0.5, 20, 14);
 const CROWN_GEO = new THREE.SphereGeometry(0.5, 16, 12);
+// One shared mesh per flower: the pollen relief adds no extra draw calls.
+const POLLEN_GEO = (() => {
+  const grains = [];
+  for (let i = 0; i < 28; i++) {
+    const angle = i * 2.399963;
+    const radius = Math.sqrt(i / 28) * 0.102;
+    const grain = new THREE.SphereGeometry(0.012, 5, 4);
+    grain.scale(1, 0.8, 1);
+    grain.translate(Math.cos(angle) * radius,
+      0.045 * Math.sqrt(1 - (radius / 0.12) ** 2), Math.sin(angle) * radius);
+    grains.push(grain);
+  }
+  const geometry = mergeGeometries(grains);
+  grains.forEach(grain => grain.dispose());
+  return geometry;
+})();
 
 const LEAF_MAT = new THREE.MeshStandardMaterial({
-  color: 0x4c8f3a,
+  color: 0x557d46,
   roughness: 0.75,
   metalness: 0,
   side: THREE.DoubleSide,
 });
 const STEM_MAT = new THREE.MeshStandardMaterial({
-  color: 0x4a8c37,
+  color: 0x476a42,
   roughness: 0.85,
   metalness: 0,
 });
 const CORE_MAT = new THREE.MeshStandardMaterial({
-  color: 0x8a5a16,
+  color: 0x946a29,
   roughness: 0.95,
   metalness: 0,
 });
 const CROWN_MAT = new THREE.MeshStandardMaterial({
-  color: 0xe8a51c,
-  roughness: 0.55,
-  emissive: 0x5a3c00,
-  emissiveIntensity: 0.5,
+  color: 0xe9c56f,
+  roughness: 0.8,
 });
 
 // Variantes de amarillo: del sol pálido al ámbar encendido.
-const TONOS = [0xf7c81b, 0xffd633, 0xf0b90a, 0xffcf1f, 0xf5bd00, 0xffde4d];
+const TONOS = [0xeec753, 0xf2d576, 0xe8bf55, 0xf0cd68, 0xe5bd60, 0xf5db8a];
 
 export class Flower extends THREE.Group {
   /**
    * @param {number} seed  semilla 0..1 para variar la flor
    */
-  constructor(seed = Math.random()) {
+  constructor(seed = Math.random(), { detailed = true } = {}) {
     super();
 
     const rnd = mulberry32(Math.floor(seed * 1e9));
@@ -128,7 +150,7 @@ export class Flower extends THREE.Group {
     const head = new THREE.Group();
     const top = curva.getPoint(1);
     head.position.copy(top);
-    head.rotation.x = 0.16 + rnd() * 0.2; // mira un poco hacia el frente
+    head.rotation.x = 0.3 + rnd() * 0.2;
     head.rotation.z = (rnd() - 0.5) * 0.3;
     head.scale.setScalar(escala);
     this.add(head);
@@ -138,10 +160,11 @@ export class Flower extends THREE.Group {
     color.offsetHSL(0, (rnd() - 0.5) * 0.06, (rnd() - 0.5) * 0.05);
     const petalMat = new THREE.MeshStandardMaterial({
       color,
-      roughness: 0.44,
+      roughness: 0.78,
+      vertexColors: true,
       metalness: 0,
       side: THREE.DoubleSide,
-      emissive: color.clone().multiplyScalar(0.08),
+      emissive: color.clone().multiplyScalar(0.025),
       emissiveIntensity: 1,
     });
     this.petalMat = petalMat;
@@ -188,9 +211,10 @@ export class Flower extends THREE.Group {
     core.position.y = 0.012;
     head.add(core);
 
-    const crown = new THREE.Mesh(CROWN_GEO, CROWN_MAT);
-    crown.scale.set(0.16 * escala, 0.08 * escala, 0.16 * escala);
-    crown.position.y = 0.032;
+    const crown = new THREE.Mesh(detailed ? POLLEN_GEO : CROWN_GEO, CROWN_MAT);
+    if (detailed) crown.scale.setScalar(escala);
+    else crown.scale.set(0.16 * escala, 0.08 * escala, 0.16 * escala);
+    crown.position.y = detailed ? 0.027 : 0.032;
     head.add(crown);
 
     this.setGrowth(0);
